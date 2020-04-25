@@ -1,0 +1,18 @@
+version: '3'
+services:
+  api:
+    image: covidtop/nodejs-production
+    volumes:
+      - ../..:/usr/src/app
+    command: npm run start-production-api
+    ports:
+      - 14100:14100
+  nginx:
+    depends_on:
+      - api
+    image: nginx:1.17.9-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ../../static:/home/static
+    ports:
+      - 14000:14000

@@ -1,0 +1,25 @@
+version: '3'
+services:
+  watch:
+    image: covidtop/nodejs-dev
+    volumes:
+      - ../..:/usr/src/app
+    command: npm run watch
+  api:
+    depends_on:
+      - watch
+    image: covidtop/nodejs-dev
+    volumes:
+      - ../..:/usr/src/app
+    command: npm run start-dev-api
+    ports:
+      - 4100:4100
+  nginx:
+    depends_on:
+      - api
+    image: nginx:1.17.9-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ../../static:/home/static
+    ports:
+      - 4000:4000

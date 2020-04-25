@@ -1,0 +1,45 @@
+{
+  "name": "@covidtop/dev",
+  "version": "0.0.0",
+  "repository": "https://github.com/covidtop/covidtop/tree/master/tools/dev",
+  "license": "MIT",
+  "bin": {
+    "dev": "./lib/cli.js"
+  },
+  "scripts": {
+    "clean-full": "node ./lib/cli clean",
+    "build": "tsc",
+    "eslint": "node ./lib/cli eslint src",
+    "prettier": "node ./lib/cli prettier src/**/*.ts"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "2.29.0",
+    "@typescript-eslint/parser": "2.29.0",
+    "chokidar": "3.3.1",
+    "cross-spawn": "7.0.2",
+    "eslint": "6.8.0",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-import": "2.20.2",
+    "eslint-plugin-no-null": "1.0.2",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-react": "7.19.0",
+    "eslint-plugin-react-hooks": "3.0.0",
+    "eslint-plugin-simple-import-sort": "5.0.2",
+    "eslint-plugin-standard": "4.0.1",
+    "latest-version": "5.1.0",
+    "lerna": "3.20.2",
+    "prettier": "2.0.5",
+    "progress": "2.0.3",
+    "rimraf": "3.0.2",
+    "table": "5.4.6",
+    "typescript": "3.8.3"
+  },
+  "devDependencies": {
+    "@types/chokidar": "2.1.3",
+    "@types/cross-spawn": "6.0.1",
+    "@types/node": "13.13.2",
+    "@types/progress": "2.0.3",
+    "@types/table": "5.0.0"
+  }
+}
