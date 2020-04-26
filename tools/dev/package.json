@@ -10,7 +10,7 @@
     "clean-full": "node ./lib/cli clean",
     "build": "tsc",
     "eslint": "node ./lib/cli eslint src",
-    "prettier": "node ./lib/cli prettier src/**/*.ts"
+    "prettier": "node ./lib/cli prettier 'src/**/*.ts'"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "2.29.0",

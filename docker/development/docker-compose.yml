@@ -20,6 +20,6 @@ services:
     image: nginx:1.17.9-alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ../../static:/home/static
+      - ../../resources/static:/home/static
     ports:
       - 4000:4000
