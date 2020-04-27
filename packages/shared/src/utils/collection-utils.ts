@@ -37,6 +37,16 @@ export const getAllKeys = <T>(items: T[]): string[] => {
   return Object.keys(keys)
 }
 
+export const mapValues = <T, K extends string, V>(
+  itemByKey: Readonly<Record<K, T>>,
+  getValue: (item: T, key: K) => V,
+): Readonly<Record<K, V>> => {
+  return Object.entries<T>(itemByKey).reduce((valueByKey, [key, item]) => {
+    valueByKey[key as K] = getValue(item, key as K)
+    return valueByKey
+  }, {} as Record<K, V>)
+}
+
 export const getMin = <T>(items: T[]): T | undefined => {
   return items.reduce((minItem: T | undefined, item) => {
     return typeof minItem !== 'undefined' && minItem < item ? minItem : item

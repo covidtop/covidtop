@@ -1,4 +1,4 @@
-import { keyBy } from '../utils'
+import { mapValues } from '../utils'
 import { MeasureType } from './measure-type'
 
 export interface MeasureInfo {
@@ -6,20 +6,22 @@ export interface MeasureInfo {
   readonly name: string
 }
 
-export const measureInfoByType = keyBy<MeasureInfo, MeasureType>(
-  [
-    {
-      measureType: 'confirmed',
-      name: 'Confirmed Cases',
-    },
-    {
-      measureType: 'deaths',
-      name: 'Deaths',
-    },
-    {
-      measureType: 'recovered',
-      name: 'Recovered Cases',
-    },
-  ],
-  ({ measureType }) => measureType,
+const partialMeasureInfoByType: Readonly<Record<MeasureType, Omit<MeasureInfo, 'measureType'>>> = {
+  confirmed: {
+    name: 'Confirmed Cases',
+  },
+  deaths: {
+    name: 'Deaths',
+  },
+  recovered: {
+    name: 'Recovered Cases',
+  },
+}
+
+export const measureInfoByType: Readonly<Record<MeasureType, MeasureInfo>> = mapValues(
+  partialMeasureInfoByType,
+  (partialMeasureInfo, measureType) => ({
+    measureType,
+    ...partialMeasureInfo,
+  }),
 )

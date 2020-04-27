@@ -1,4 +1,4 @@
-import { eachDayOfInterval, format, sub } from 'date-fns'
+import { differenceInMinutes, eachDayOfInterval, format, sub } from 'date-fns'
 
 export const getNowText = (): string => {
   return new Date().toISOString()
@@ -8,10 +8,14 @@ export const toDateText = (date: Date): string => {
   return format(date, 'yyyy-MM-dd')
 }
 
-export const getDatesBetween = (minDate: string, maxDate: string): string[] => {
-  return eachDayOfInterval({ start: new Date(minDate), end: new Date(maxDate) }).map(toDateText)
+export const getDatesBetween = (startDateText: string, endDateText: string): string[] => {
+  return eachDayOfInterval({ start: new Date(startDateText), end: new Date(endDateText) }).map(toDateText)
 }
 
-export const subtractDate = (date: string, days: number): string => {
-  return toDateText(sub(new Date(date), { days }))
+export const getMinutesBetween = (fromDate: Date, toDate: Date): number => {
+  return differenceInMinutes(fromDate, toDate)
+}
+
+export const subtractDate = (dateText: string, days: number): string => {
+  return toDateText(sub(new Date(dateText), { days }))
 }

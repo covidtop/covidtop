@@ -1,8 +1,10 @@
 import { Location } from './location'
 
+export type LocationByCode = Readonly<Record<string, Location>>
+
 export interface LocationRecord {
   readonly hasGeography: boolean
-  readonly locationByCode: Readonly<Record<string, Location>>
+  readonly locationByCode: LocationByCode
 }
 
 export interface LocationData {

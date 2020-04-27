@@ -6,8 +6,11 @@ export interface MainRecord {
   readonly dailyMeasures: number[][]
 }
 
+export type MainRecordByLocationCode = Readonly<Record<string, MainRecord>>
+
 export interface MainData {
   readonly datasetId: string
   readonly referenceData: ReferenceData
-  readonly mainRecordsByLocationType: Readonly<Record<string, MainRecord[]>>
+  readonly rootRecord: MainRecord
+  readonly mainRecordByLocationTypeAndCode: Readonly<Record<string, MainRecordByLocationCode>>
 }
