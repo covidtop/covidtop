@@ -1,0 +1,7 @@
+metric,active cases,unrecovered,ongoing,continuing,active
+metric,fatality rate,death rate,mortality risk,fatality ratio,fatality risk,dead rate,mortality rate
+metric,deaths,fatality,mortality,dead,death,die,fatalities,dying,mortalities
+metric,recovered cases,recovery,recover,recovers,regain,recovered
+metric,confirmed cases,all cases,total cases,confirm,confirmed
+query_type,summary,latest,snapshot,current,today,recent
+query_type,trend,over time,time series,trends,momentum,pattern,movement,evolution,development,trending,evolving

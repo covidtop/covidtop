@@ -7,14 +7,14 @@
   "scripts": {
     "clean": "dev clean",
     "eslint": "dev eslint src",
-    "prettier": "dev prettier src/**/*.ts",
+    "prettier": "dev prettier 'src/**/*.ts'",
     "build": "dev build",
     "start-production": "NODE_ENV=production API_PORT=14100 node lib/main.js",
     "start-dev": "nodemon"
   },
   "nodemonConfig": {
     "watch": [
-      "../../tmp/development/build-info.txt"
+      "../../tmp/build-info.txt"
     ],
     "env": {
       "NODE_ENV": "development",
@@ -22,16 +22,23 @@
     }
   },
   "dependencies": {
+    "@covidtop/calculator": "0.0.0",
+    "@covidtop/data": "0.0.0",
+    "@covidtop/shared": "0.0.0",
     "@nestjs/common": "7.0.9",
     "@nestjs/core": "7.0.9",
     "@nestjs/platform-express": "7.0.9",
     "@nestjs/schedule": "0.3.1",
+    "dashify": "2.0.0",
     "helmet": "3.22.0",
-    "reflect-metadata": "0.1.13"
+    "reflect-metadata": "0.1.13",
+    "string-similarity": "4.0.1"
   },
   "devDependencies": {
     "@covidtop/dev": "0.0.0",
+    "@types/dashify": "1.0.0",
     "@types/helmet": "0.0.45",
+    "@types/string-similarity": "3.0.0",
     "nodemon": "2.0.3"
   }
 }

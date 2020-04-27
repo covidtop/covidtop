@@ -9,7 +9,7 @@
     "clean": "node ./scripts/dev run clean",
     "format-full": "node ./scripts/dev run prettier && npm run format",
     "format": "node ./scripts/dev run eslint",
-    "watch": "node ./scripts/dev watch build ./tmp/development/build-info.txt",
+    "watch": "node ./scripts/dev watch build ./tmp/build-info.txt",
     "check-deps": "node ./scripts/dev check-deps",
     "build-dev-docker": "docker build -t covidtop/nodejs-dev ./docker/development",
     "build-production-docker": "docker build -t covidtop/nodejs-production ./docker/production",
