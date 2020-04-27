@@ -41,13 +41,14 @@ const refreshDataset = async (datasetLoader: DatasetLoader): Promise<RefreshData
   const { datasetConfig } = datasetLoader
   const datasetMessage = `Refresh dataset ${datasetConfig.name} [${datasetConfig.id}]`
   try {
-    console.log(new Date(), `${datasetMessage}: START`)
+    console.log(`${datasetMessage}: START`)
     const result = await runDatasetLoader(datasetLoader)
-    console.log(new Date(), `${datasetMessage}: DONE`)
+    console.log(`${datasetMessage}: DONE`)
     return result
   } catch (err) {
-    console.log(new Date(), `${datasetMessage}: FAILED`)
+    console.log(`${datasetMessage}: FAILED`)
     console.log(err)
+    return undefined
   }
 }
 

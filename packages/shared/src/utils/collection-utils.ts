@@ -58,3 +58,46 @@ export const getMax = <T>(items: T[]): T | undefined => {
     return typeof maxItem !== 'undefined' && maxItem > item ? maxItem : item
   }, undefined)
 }
+
+export type Comparator<T> = (firstItem: T, secondItem: T) => number
+
+export type Comparable = number | string
+
+export interface CompareByOptions<T> {
+  readonly getValue: (item: T) => Comparable | undefined
+  readonly ascendingOrder?: boolean
+  readonly undefinedFirst?: boolean
+}
+
+const withCompareFlag = (flag: boolean, result: number) => (flag ? result : -result)
+
+const compareDefinedValues = (firstValue: Comparable, secondValue: Comparable, ascendingOrder: boolean): number => {
+  if (firstValue < secondValue) {
+    return withCompareFlag(ascendingOrder, -1)
+  }
+
+  if (firstValue > secondValue) {
+    return withCompareFlag(ascendingOrder, 1)
+  }
+
+  return 0
+}
+
+export const compareBy = <T>(options: CompareByOptions<T>): Comparator<T> => {
+  const { getValue, ascendingOrder = false, undefinedFirst = false } = options
+
+  return (firstItem: T, secondItem: T) => {
+    const firstValue: Comparable | undefined = getValue(firstItem)
+    const secondValue: Comparable | undefined = getValue(secondItem)
+
+    if (typeof firstValue === 'undefined') {
+      return withCompareFlag(undefinedFirst, -1)
+    }
+
+    if (typeof secondValue === 'undefined') {
+      return withCompareFlag(undefinedFirst, 1)
+    }
+
+    return compareDefinedValues(firstValue, secondValue, ascendingOrder)
+  }
+}

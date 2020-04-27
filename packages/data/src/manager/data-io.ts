@@ -5,9 +5,9 @@ import createObjectHasher from 'node-object-hash'
 import path from 'path'
 
 const DATA_VERSION = 'v1.0'
-const dataPath = `data/${DATA_VERSION}`
+const dataPath = `${DATA_VERSION}`
 
-const baseDirPath = path.join(__dirname, `../../../../tmp/${process.env.NODE_ENV}`)
+const baseDirPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
 const objectHasher = createObjectHasher()
 
 const joinPath = (...parts: string[]) => parts.join('/')
