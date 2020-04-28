@@ -1,12 +1,16 @@
 version: '3'
 services:
+  chart:
+    image: ianw/quickchart
+    environment:
+      DISABLE_TELEMETRY: DISABLE_TELEMETRY
   api:
+    depends_on:
+      - chart
     image: covidtop/nodejs-production
     volumes:
       - ../..:/usr/src/app
     command: npm run start-production-api
-    ports:
-      - 14100:14100
   nginx:
     depends_on:
       - api
@@ -16,4 +20,4 @@ services:
       - ../../resources/static:/home/static
       - ../../data/production:/home/data
     ports:
-      - 14000:14000
+      - 80:80

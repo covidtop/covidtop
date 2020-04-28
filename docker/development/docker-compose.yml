@@ -5,15 +5,18 @@ services:
     volumes:
       - ../..:/usr/src/app
     command: npm run watch
+  chart:
+    image: ianw/quickchart
+    environment:
+      DISABLE_TELEMETRY: DISABLE_TELEMETRY
   api:
     depends_on:
       - watch
+      - chart
     image: covidtop/nodejs-dev
     volumes:
       - ../..:/usr/src/app
     command: npm run start-dev-api
-    ports:
-      - 4100:4100
   nginx:
     depends_on:
       - api
