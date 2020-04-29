@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "docker-dev": "docker run -it --rm -v $(pwd):/usr/src/app covidtop/nodejs-dev sh",
+    "docker-production": "docker run -it --rm -v $(pwd):/usr/src/app covidtop/nodejs-production sh",
     "boot-full": "npm install && npm run boot -- --scope=@covidtop/dev && npm run build-dev && npm run boot && npm run build",
     "boot": "lerna bootstrap --hoist",
     "clean-full": "npm run clean && node ./scripts/dev run clean-full && lerna clean --yes",
