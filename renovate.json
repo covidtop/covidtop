@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "config:base",
+    "group:allNonMajor",
+    ":pinVersions"
+  ],
+  "updateLockFiles": false,
+  "schedule": "on tuesday and thursday and saturday"
+}
