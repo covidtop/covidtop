@@ -21,3 +21,4 @@ services:
       - ../../data/production:/home/data
     ports:
       - 80:80
+      - 443:443
