@@ -1,0 +1,25 @@
+{
+  "name": "@covidtop/web",
+  "version": "0.0.0",
+  "repository": "https://github.com/covidtop/covidtop/tree/master/packages/web",
+  "license": "MIT",
+  "scripts": {
+    "clean": "dev clean .next",
+    "eslint": "dev eslint src",
+    "prettier": "dev prettier 'src/**/*.{ts,tsx}'",
+    "build-production": "NODE_ENV=production next build",
+    "start-production": "NODE_ENV=production next start -p 4900",
+    "start-dev": "NODE_ENV=development next -p 4900"
+  },
+  "dependencies": {
+    "@material-ui/core": "4.9.12",
+    "@material-ui/icons": "4.9.1",
+    "next": "9.3.6",
+    "react": "16.13.1",
+    "react-dom": "16.13.1"
+  },
+  "devDependencies": {
+    "@covidtop/dev": "0.0.0",
+    "@types/react": "16.9.34"
+  }
+}
