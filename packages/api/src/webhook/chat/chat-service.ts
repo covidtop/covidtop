@@ -1,33 +1,24 @@
 import { metricCalculatorByType, SnapshotContext } from '@covidtop/calculator/lib/metric'
 import { jhuGlobalLoader } from '@covidtop/data/lib/dataset/jhu'
-import { dataManager } from '@covidtop/data/lib/manager'
+import { ChartConfig, ChartDatasetConfig, chartGenerator, dataManager } from '@covidtop/data/lib/manager'
 import { MainData, MainRecord } from '@covidtop/shared/lib/dataset'
 import { Location } from '@covidtop/shared/lib/location'
 import { metricFormatByType, metricInfoByType, MetricType } from '@covidtop/shared/lib/metric'
 import { compareBy } from '@covidtop/shared/lib/utils'
 import { Injectable } from '@nestjs/common'
 import config from 'config'
-import download from 'download'
-import createObjectHasher from 'node-object-hash'
-import path from 'path'
-import querystring from 'querystring'
 import stringSimilarity from 'string-similarity'
 
 import { StatisticsParams } from './statistics-params'
 import { StatisticsResult } from './statistics-result'
 
 const HOST_URL: string = config.get('HOST_URL')
-const CHART_URL: string = config.get('CHART_URL')
-const objectHasher = createObjectHasher()
 
 interface TopRecord {
   readonly mainRecord: MainRecord
   readonly location: Location
   readonly value: number | undefined
 }
-
-type ChartConfig = any // eslint-disable-line
-type ChartDatasetConfig = any // eslint-disable-line
 
 const colors: string[] = ['#3869B1', '#DA7E30', '#3F9852', '#CC2428', '#535055', '#6B4C9A', '#958738']
 
@@ -129,13 +120,7 @@ export class ChatService {
       },
     }
 
-    const imageId = objectHasher.hash(chartConfig)
-
-    await download(
-      `${CHART_URL}?bkg=white&w=400&h=300&c=${querystring.escape(JSON.stringify(chartConfig))}`,
-      path.join(__dirname, `../../../../../data/${process.env.NODE_ENV}/chart`),
-      { filename: `${imageId}.png` },
-    )
+    const imageId = await chartGenerator.downloadImage(chartConfig)
 
     return {
       message: `${metricInfo.name} of ${chartConfig.data.datasets
