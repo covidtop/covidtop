@@ -14,7 +14,7 @@ services:
   nginx:
     depends_on:
       - api
-    image: nginx:1.17.9-alpine
+    image: nginx:1.18.0-alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ../../resources/static:/home/static
