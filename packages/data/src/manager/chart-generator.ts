@@ -24,7 +24,7 @@ const downloadChartImage = async (chartConfig: ChartConfig): Promise<string> => 
     writer.on('finish', resolve)
     writer.on('error', reject)
   })
-  return `/chart/${imageId}.png`
+  return `chart/${imageId}.png`
 }
 
 export const chartGenerator = {
