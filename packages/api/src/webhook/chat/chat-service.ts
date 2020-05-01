@@ -120,13 +120,13 @@ export class ChatService {
       },
     }
 
-    const imageId = await chartGenerator.downloadImage(chartConfig)
+    const chartImagePath = await chartGenerator.downloadChartImage(chartConfig)
 
     return {
       message: `${metricInfo.name} of ${chartConfig.data.datasets
         .map(({ label }: ChartDatasetConfig) => label)
         .join(', ')}`,
-      imageUrl: `${HOST_URL}/api/data/chart/${imageId}.png`,
+      imageUrl: `${HOST_URL}/api/data/${chartImagePath}`,
     }
   }
 

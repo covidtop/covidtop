@@ -10,7 +10,7 @@ const CHART_URL: string = config.get('CHART_URL')
 export type ChartConfig = any // eslint-disable-line
 export type ChartDatasetConfig = any // eslint-disable-line
 
-const downloadImage = async (chartConfig: ChartConfig): Promise<string> => {
+const downloadChartImage = async (chartConfig: ChartConfig): Promise<string> => {
   const imageId = objectHasher.hash(chartConfig)
   const imagePath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}/chart/${imageId}.png`)
   const response = await axios.post(
@@ -24,9 +24,9 @@ const downloadImage = async (chartConfig: ChartConfig): Promise<string> => {
     writer.on('finish', resolve)
     writer.on('error', reject)
   })
-  return imageId
+  return `/chart/${imageId}.png`
 }
 
 export const chartGenerator = {
-  downloadImage,
+  downloadChartImage,
 }
