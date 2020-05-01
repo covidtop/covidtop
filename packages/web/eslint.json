@@ -1,0 +1,9 @@
+{
+  "extends": "./node_modules/@covidtop/dev/eslint.json",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}
