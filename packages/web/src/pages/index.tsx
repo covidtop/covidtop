@@ -1,8 +1,7 @@
 import { Container } from '@material-ui/core'
 import { NextPage } from 'next'
 
-import { PageLayout } from '../components/page-layout'
-import { TopSpace } from '../components/top-space'
+import { PageLayout, TopSpace } from '../components/common'
 
 const HomePage: NextPage = () => {
   return (

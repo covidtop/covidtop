@@ -3,7 +3,7 @@ import { blueGrey } from '@material-ui/core/colors'
 import { AppProps } from 'next/app'
 import { useEffect } from 'react'
 
-import { uiConstants } from '../components/ui-constants'
+import { uiConstants } from '../components/common'
 
 const useRemoveSsrInjectedCssEffect = () => {
   useEffect(() => {
