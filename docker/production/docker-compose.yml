@@ -11,9 +11,17 @@ services:
     volumes:
       - ../..:/usr/src/app
     command: npm run start-production-api
+  web:
+    depends_on:
+      - api
+    image: covidtop/nodejs-production
+    volumes:
+      - ../..:/usr/src/app
+    command: npm run start-production-web
   nginx:
     depends_on:
       - api
+      - web
     image: nginx:1.18.0-alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
