@@ -1,4 +1,6 @@
-import { differenceInMinutes, eachDayOfInterval, format, sub } from 'date-fns'
+import { differenceInMinutes, eachDayOfInterval, format, parse as parseDate, sub } from 'date-fns'
+
+export { parseDate }
 
 export const getNowText = (): string => {
   return new Date().toISOString()
