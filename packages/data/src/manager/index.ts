@@ -1,2 +1,2 @@
 export * from './data-manager'
-export * from './chart-generator'
+export * from './chart-manager'

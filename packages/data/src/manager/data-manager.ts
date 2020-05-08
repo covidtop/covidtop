@@ -1,85 +1,93 @@
-import { DatasetSummary, MainData, ReferenceSummary } from '@covidtop/shared/lib/dataset'
-import { getMinutesBetween } from '@covidtop/shared/lib/utils'
+import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
+import { getNowText } from '@covidtop/shared/lib/utils'
 
-import { allDatasetLoaders, DatasetLoader } from '../dataset'
+import { allTopicLoaders, TopicLoader } from '../topic'
 import { dataIo } from './data-io'
 
-const mainDataByDatasetId: Record<string, MainData> = {}
+const updateTopicSummary = async (
+  topicData: TopicData,
+  topicConfig: TopicConfig,
+  previousTopicSummary?: TopicSummary,
+): Promise<TopicSummary> => {
+  const lastChecked = getNowText()
+  const dataHash = dataIo.hash(topicData)
 
-interface RefreshDatasetResult {
-  readonly mainData: MainData
-  readonly datasetSummary: DatasetSummary
-}
+  if (previousTopicSummary && previousTopicSummary.dataHash === dataHash) {
+    return dataIo.writeTopicSummary({
+      ...previousTopicSummary,
+      lastChecked,
+    })
+  }
 
-const runDatasetLoader = async (datasetLoader: DatasetLoader): Promise<RefreshDatasetResult> => {
-  const { datasetConfig } = datasetLoader
-  const mainData: MainData = await datasetLoader.loadData()
-  mainDataByDatasetId[datasetConfig.id] = mainData
+  const { locationGroups, dates } = topicData
+  const dataPath = await dataIo.writeTopicData(topicData, dataHash, topicConfig)
 
-  await dataIo.ensureDatasetDir(datasetConfig)
-  const previousDatasetSummary = await dataIo.getDatasetSummary(datasetConfig)
-
-  const { dates } = mainData.referenceData
-  const referenceSummary: ReferenceSummary = {
+  return dataIo.writeTopicSummary({
+    topicConfig,
+    lastChecked,
+    lastUpdated: lastChecked,
+    dataHash,
+    dataPath,
+    locationGroups,
     minDate: dates[0],
     maxDate: dates[dates.length - 1],
-  }
-  const datasetSummary = await dataIo.updateDatasetSummary(
-    mainData,
-    referenceSummary,
-    datasetConfig,
-    previousDatasetSummary,
-  )
-
-  return {
-    mainData,
-    datasetSummary,
-  }
+  })
 }
 
-const refreshDataset = async (datasetLoader: DatasetLoader): Promise<RefreshDatasetResult | undefined> => {
-  const { datasetConfig } = datasetLoader
-  const datasetMessage = `Refresh dataset ${datasetConfig.name} [${datasetConfig.id}]`
-  try {
-    console.log(`${datasetMessage}: START`)
-    const result = await runDatasetLoader(datasetLoader)
-    console.log(`${datasetMessage}: DONE`)
-    return result
-  } catch (err) {
-    console.log(`${datasetMessage}: FAILED`)
-    console.log(err)
-    return undefined
-  }
+export interface RefreshOptions {
+  readonly skipIfExists: boolean
 }
 
-const refreshData = async () => {
-  for (const datasetLoader of allDatasetLoaders) {
-    await refreshDataset(datasetLoader)
+const refreshTopic = async (topicLoader: TopicLoader, { skipIfExists }: RefreshOptions): Promise<TopicSummary> => {
+  const { topicConfig } = topicLoader
+
+  await dataIo.ensureTopicDataDir(topicConfig)
+  const previousTopicSummary = await dataIo.readTopicSummary(topicConfig)
+
+  if (skipIfExists && previousTopicSummary) {
+    return previousTopicSummary
   }
+
+  const topicData: TopicData = await topicLoader.loadTopicData()
+  return updateTopicSummary(topicData, topicConfig, previousTopicSummary)
 }
 
-const getMainData = async (datasetLoader: DatasetLoader): Promise<MainData | undefined> => {
-  const { datasetConfig } = datasetLoader
+let cachedTopicSummaries: TopicSummary[] = []
 
-  const mainDataFromMemory: MainData | undefined = mainDataByDatasetId[datasetConfig.id]
-  if (mainDataFromMemory) {
-    return mainDataFromMemory
-  }
-
-  const datasetSummary = await dataIo.getDatasetSummary(datasetConfig)
-  if (datasetSummary && getMinutesBetween(new Date(), new Date(datasetSummary.lastChecked)) < 5) {
-    const mainDataFromFile: MainData | undefined = await dataIo.getMainData(datasetSummary)
-    if (mainDataFromFile) {
-      mainDataByDatasetId[datasetConfig.id] = mainDataFromFile
-      return mainDataFromFile
+const refreshAllTopics = async (options: RefreshOptions): Promise<void> => {
+  console.log('Refresh all topics: START')
+  const topicSummaries: TopicSummary[] = []
+  for (const topicLoader of allTopicLoaders) {
+    try {
+      console.log(`Refresh topic '${topicLoader.topicConfig.id}': START`)
+      topicSummaries.push(await refreshTopic(topicLoader, options))
+      console.log(`Refresh topic '${topicLoader.topicConfig.id}': DONE`)
+    } catch (err) {
+      console.log(`Refresh topic '${topicLoader.topicConfig.id}': FAILED`)
+      console.log(err)
     }
   }
+  cachedTopicSummaries = topicSummaries
+  console.log('Refresh all topics: DONE')
+}
 
-  const result = await refreshDataset(datasetLoader)
-  return result ? result.mainData : undefined
+const getTopicSummaries = (): TopicSummary[] => {
+  return cachedTopicSummaries
+}
+
+const getTopicData = async (topicLoader: TopicLoader): Promise<TopicData | undefined> => {
+  const { topicConfig } = topicLoader
+  const topicSummary = await dataIo.readTopicSummary(topicConfig)
+
+  if (!topicSummary) {
+    return
+  }
+
+  return dataIo.readTopicData(topicSummary)
 }
 
 export const dataManager = {
-  refreshData,
-  getMainData,
+  refreshAllTopics,
+  getTopicSummaries,
+  getTopicData,
 }

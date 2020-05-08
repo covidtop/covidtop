@@ -1,105 +1,100 @@
-import { DatasetConfig, DatasetSummary, MainData, ReferenceSummary } from '@covidtop/shared/lib/dataset'
-import { getNowText } from '@covidtop/shared/lib/utils'
+import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
+import { AxiosResponse } from 'axios'
 import fse from 'fs-extra'
 import createObjectHasher from 'node-object-hash'
 import path from 'path'
 
-const DATA_VERSION = 'v1.0'
-const dataPath = `${DATA_VERSION}`
+const TOPIC_VERSION = 'v1.0'
 
-const baseDirPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
 const objectHasher = createObjectHasher()
 
-const joinPath = (...parts: string[]) => parts.join('/')
-
-const toFullPath = (filePath: string) => {
-  return path.join(baseDirPath, filePath)
+const hash = (data: object): string => {
+  return objectHasher.hash(data)
 }
 
-const getDatasetPath = (datasetConfig: DatasetConfig) => {
-  return joinPath(dataPath, datasetConfig.id)
+const topicDataPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
+
+const getFullPath = (shortPath: string) => {
+  return path.join(topicDataPath, shortPath)
 }
 
-const getJsonPath = (parentPath: string, name: string) => {
-  return joinPath(parentPath, `${name}.json`)
+const joinShortPath = (...parts: string[]) => parts.join('/')
+
+const getTopicShortPath = (topicConfig: TopicConfig) => {
+  return joinShortPath('topic', TOPIC_VERSION, topicConfig.id)
 }
 
-const getSummaryPath = (datasetConfig: DatasetConfig) => {
-  return getJsonPath(getDatasetPath(datasetConfig), 'summary')
+const getTopicSummaryShortPath = (topicConfig: TopicConfig) => {
+  return joinShortPath(getTopicShortPath(topicConfig), 'summary.json')
 }
 
-const ensureDatasetDir = async (datasetConfig: DatasetConfig) => {
-  await fse.ensureDir(toFullPath(getDatasetPath(datasetConfig)))
+const ensureTopicDataDir = async (topicConfig: TopicConfig) => {
+  await fse.ensureDir(getFullPath(getTopicShortPath(topicConfig)))
 }
 
-const getDatasetSummary = async (datasetConfig: DatasetConfig): Promise<DatasetSummary | undefined> => {
-  const datasetSummaryPath = toFullPath(getSummaryPath(datasetConfig))
-  const datasetSummaryExists = await fse.pathExists(datasetSummaryPath)
-  if (!datasetSummaryExists) {
+const readTopicSummary = async (topicConfig: TopicConfig): Promise<TopicSummary | undefined> => {
+  const topicSummaryFullPath = getFullPath(getTopicSummaryShortPath(topicConfig))
+  const topicSummaryExists = await fse.pathExists(topicSummaryFullPath)
+  if (!topicSummaryExists) {
     return
   }
-  return fse.readJson(datasetSummaryPath)
+  return fse.readJson(topicSummaryFullPath)
 }
 
-const writeDatasetSummary = async (
-  datasetSummary: DatasetSummary,
-  datasetConfig: DatasetConfig,
-): Promise<DatasetSummary> => {
-  await fse.writeJson(toFullPath(getSummaryPath(datasetConfig)), datasetSummary)
-  return datasetSummary
+const writeTopicSummary = async (topicSummary: TopicSummary): Promise<TopicSummary> => {
+  await fse.writeJson(getFullPath(getTopicSummaryShortPath(topicSummary.topicConfig)), topicSummary)
+  return topicSummary
 }
 
-const updateDatasetSummary = async (
-  mainData: MainData,
-  referenceSummary: ReferenceSummary,
-  datasetConfig: DatasetConfig,
-  previousSummary?: DatasetSummary,
-): Promise<DatasetSummary> => {
-  const lastChecked = getNowText()
-  const mainDataHash = objectHasher.hash(mainData)
+const readTopicData = async (topicSummary: TopicSummary): Promise<TopicData | undefined> => {
+  const topicDataFullPath = getFullPath(topicSummary.dataPath)
 
-  if (previousSummary && previousSummary.mainDataHash === mainDataHash) {
-    return writeDatasetSummary(
-      {
-        ...previousSummary,
-        lastChecked,
-      },
-      datasetConfig,
-    )
-  }
-
-  const mainDataDirPath = joinPath(getDatasetPath(datasetConfig), 'main')
-  const mainDataPath = getJsonPath(mainDataDirPath, mainDataHash)
-  const mainDataExists = await fse.pathExists(toFullPath(mainDataPath))
-  if (!mainDataExists) {
-    await fse.ensureDir(toFullPath(mainDataDirPath))
-    await fse.writeJson(toFullPath(mainDataPath), mainData)
-  }
-
-  return writeDatasetSummary(
-    {
-      lastChecked,
-      lastUpdated: lastChecked,
-      mainDataHash,
-      mainDataPath,
-      referenceSummary,
-    },
-    datasetConfig,
-  )
-}
-
-const getMainData = async (datasetSummary: DatasetSummary): Promise<MainData | undefined> => {
-  const { mainDataPath } = datasetSummary
-  const mainDataExists = await fse.pathExists(toFullPath(mainDataPath))
-  if (!mainDataExists) {
+  const topicDataExists = await fse.pathExists(topicDataFullPath)
+  if (!topicDataExists) {
     return
   }
-  return fse.readJson(toFullPath(mainDataPath))
+
+  return fse.readJson(topicDataFullPath)
+}
+
+const writeTopicData = async (topicData: TopicData, dataHash: string, topicConfig: TopicConfig): Promise<string> => {
+  const topicDataShortPath = joinShortPath(getTopicShortPath(topicConfig), 'data', `${dataHash}.json`)
+  const topicDataFullPath = getFullPath(topicDataShortPath)
+
+  const topicDataExists = await fse.pathExists(topicDataFullPath)
+  if (!topicDataExists) {
+    await fse.ensureDir(path.dirname(topicDataFullPath))
+    await fse.writeJson(topicDataFullPath, topicData)
+  }
+
+  return topicDataShortPath
+}
+
+const getChartShortPath = (imageId: string) => {
+  return joinShortPath('chart', `${imageId}.png`)
+}
+
+const downloadChart = async (imageId: string, response: AxiosResponse): Promise<string> => {
+  const chartShortPath = getChartShortPath(imageId)
+  const chartFullPath = getFullPath(chartShortPath)
+
+  await fse.ensureDir(path.dirname(chartFullPath))
+  const writer = fse.createWriteStream(chartFullPath)
+  response.data.pipe(writer)
+  await new Promise((resolve, reject) => {
+    writer.on('finish', resolve)
+    writer.on('error', reject)
+  })
+
+  return chartShortPath
 }
 
 export const dataIo = {
-  ensureDatasetDir,
-  getDatasetSummary,
-  updateDatasetSummary,
-  getMainData,
+  hash,
+  ensureTopicDataDir,
+  readTopicSummary,
+  writeTopicSummary,
+  readTopicData,
+  writeTopicData,
+  downloadChart,
 }

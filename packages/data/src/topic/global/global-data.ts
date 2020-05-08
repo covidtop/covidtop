@@ -1,0 +1,55 @@
+import { Location } from '@covidtop/shared/lib/location'
+import { TopicData } from '@covidtop/shared/lib/topic'
+
+import { sourceHelper } from '../../source/common'
+import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
+import { LoadTopicData } from '../common'
+import { globalConfig, globalLocationTypes } from './global-config'
+
+const getGlobalLocations = (row: Record<string, string>): Location[] => {
+  const countryRegion = row['Country/Region']
+  const provinceState = row['Province/State']
+  const countryRegionLocation: Location = {
+    type: globalLocationTypes.countryRegion.code,
+    code: sourceHelper.getCodeFromName(countryRegion),
+    name: countryRegion,
+  }
+  const provinceStateName = provinceState ? `${countryRegion} - ${provinceState}` : countryRegion
+  const provinceStateLocation: Location = {
+    type: globalLocationTypes.provinceState.code,
+    code: sourceHelper.getCodeFromName(provinceStateName),
+    name: provinceStateName,
+  }
+  return [countryRegionLocation, provinceStateLocation]
+}
+
+const parseConfirmedFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('confirmed', 'time_series_covid19_confirmed_global.csv', getGlobalLocations)
+}
+
+const parseDeathsFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('deaths', 'time_series_covid19_deaths_global.csv', getGlobalLocations)
+}
+
+const parseRecoveredFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('recovered', 'time_series_covid19_recovered_global.csv', getGlobalLocations)
+}
+
+export const loadGlobalTopicData: LoadTopicData = async (): Promise<TopicData> => {
+  const confirmedFile = await parseConfirmedFile()
+  const deathsFile = await parseDeathsFile()
+  const recoveredFile = await parseRecoveredFile()
+
+  const { locationGroups, dates, topicRecords } = mergeJhuMeasureFiles(
+    [confirmedFile, deathsFile, recoveredFile],
+    globalConfig,
+  )
+
+  return {
+    rootLocation: globalConfig.locationConfig.rootLocation,
+    locationGroups,
+    measureTypes: globalConfig.measureConfig.measureTypes,
+    dates,
+    topicRecords,
+  }
+}
