@@ -49,9 +49,6 @@ const aggregateMeasurePerTypeAndDate = (topicRecords: TopicRecord[], topicData: 
   return topicData.measureTypes.map((measureType, measureIndex) => {
     return topicData.dates.map((date, dateIndex) => {
       return sumBy(topicRecords, (topicRecord) => {
-        if (!topicRecord.measurePerTypeAndDate[measureIndex]) {
-          console.log(topicRecord.locationCodePerType, measureType)
-        }
         return topicRecord.measurePerTypeAndDate[measureIndex][dateIndex]
       })
     })
