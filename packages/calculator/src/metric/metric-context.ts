@@ -1,6 +1,6 @@
-import { DatasetConfig, MainData } from '@covidtop/shared/lib/dataset'
+import { TopicConfig, TopicData } from '@covidtop/shared/lib/topic'
 
 export interface MetricContext {
-  readonly mainData: MainData
-  readonly datasetConfig: DatasetConfig
+  readonly topicData: TopicData
+  readonly topicConfig: TopicConfig
 }

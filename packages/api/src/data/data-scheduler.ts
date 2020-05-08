@@ -6,8 +6,6 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 export class DataScheduler {
   @Cron(CronExpression.EVERY_15_MINUTES)
   async triggerRefreshData () {
-    console.log('Refresh data: START')
-    await dataManager.refreshData()
-    console.log('Refresh data: DONE')
+    await dataManager.refreshAllTopics({ skipIfExists: false })
   }
 }

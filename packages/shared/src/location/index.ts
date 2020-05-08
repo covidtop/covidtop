@@ -1,5 +1,4 @@
-export * from './geography'
 export * from './location-type'
-export * from './location-config'
 export * from './location'
-export * from './location-data'
+export * from './location-group'
+export * from './location-config'
