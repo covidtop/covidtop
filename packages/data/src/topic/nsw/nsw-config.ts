@@ -8,7 +8,7 @@ export const nswLocationTypes = {
   postcode: { code: 'POSTCODE', name: 'Postcode' },
 }
 
-export const nswHealthConfig: TopicConfig = {
+export const nswConfig: TopicConfig = {
   id: 'new-south-wales',
   aliases: ['nsw'],
   name: 'Australia - New South Wales',

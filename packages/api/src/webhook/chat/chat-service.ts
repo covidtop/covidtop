@@ -1,9 +1,10 @@
+import { baseCalculator, BaseRecord } from '@covidtop/calculator/lib/base'
 import { metricCalculatorByType, SnapshotContext } from '@covidtop/calculator/lib/metric'
-import { jhuGlobalLoader } from '@covidtop/data/lib/dataset/jhu'
-import { ChartConfig, ChartDatasetConfig, chartGenerator, dataManager } from '@covidtop/data/lib/manager'
-import { MainData, MainRecord } from '@covidtop/shared/lib/dataset'
+import { ChartConfig, ChartDatasetConfig, chartManager, dataManager } from '@covidtop/data/lib/manager'
+import { globalLoader } from '@covidtop/data/lib/topic/global'
 import { Location } from '@covidtop/shared/lib/location'
-import { metricFormatByType, metricInfoByType, MetricType } from '@covidtop/shared/lib/metric'
+import { metricByType, metricFormatByType, MetricType } from '@covidtop/shared/lib/metric'
+import { TopicData } from '@covidtop/shared/lib/topic'
 import { compareBy } from '@covidtop/shared/lib/utils'
 import { Injectable } from '@nestjs/common'
 import config from 'config'
@@ -15,7 +16,7 @@ import { StatisticsResult } from './statistics-result'
 const HOST_URL: string = config.get('HOST_URL')
 
 interface TopRecord {
-  readonly mainRecord: MainRecord
+  readonly baseRecord: BaseRecord
   readonly location: Location
   readonly value: number | undefined
 }
@@ -25,17 +26,17 @@ const colors: string[] = ['#3869B1', '#DA7E30', '#3F9852', '#CC2428', '#535055',
 @Injectable()
 export class ChatService {
   async getStatistics (params: StatisticsParams): Promise<StatisticsResult | undefined> {
-    const mainData: MainData | undefined = await dataManager.getMainData(jhuGlobalLoader)
+    const topicData: TopicData | undefined = await dataManager.getTopicData(globalLoader)
 
-    if (!mainData) {
+    if (!topicData) {
       return
     }
 
-    const currentDate = mainData.referenceData.dates[mainData.referenceData.dates.length - 1]
+    const currentDate = topicData.dates[topicData.dates.length - 1]
     const snapshotContext: SnapshotContext = {
       metricContext: {
-        mainData,
-        datasetConfig: jhuGlobalLoader.datasetConfig,
+        topicData,
+        topicConfig: globalLoader.topicConfig,
       },
       currentDate,
     }
@@ -52,38 +53,41 @@ export class ChatService {
 
   private async getTrend (params: StatisticsParams, snapshotContext: SnapshotContext): Promise<StatisticsResult> {
     const metricType: MetricType = params.metricTypes[0]
-    const metricInfo = metricInfoByType[metricType]
-    const { mainData, datasetConfig } = snapshotContext.metricContext
+    const metric = metricByType[metricType]
+    const { topicData, topicConfig } = snapshotContext.metricContext
 
     const topRecords = params.locationQueries.reduce((currentTopRecords: TopRecord[], locationQuery) => {
-      const foundLocation = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
-      if (!foundLocation) {
+      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      if (!location) {
         return currentTopRecords
       }
-      const { locationData } = mainData.referenceData
+
       const breakdownLocationType =
-        datasetConfig.locationConfig.locationTypes.find((locationType) => {
+        topicConfig.locationConfig.locationTypes.find((locationType) => {
           return locationType.code === params.breakdownLocationTypeCode
-        }) || datasetConfig.locationConfig.locationTypes[0]
-      const { location } = foundLocation
-      const { locationByCode } = locationData.locationRecordByType[breakdownLocationType.code]
-      const topRecords: TopRecord[] = Object.values(
-        mainData.mainRecordByLocationTypeAndCode[breakdownLocationType.code],
+        }) || topicConfig.locationConfig.locationTypes[0]
+
+      const breakdownLocationGroup = topicData.locationGroups.filter(
+        ({ locationType }) => locationType.code === breakdownLocationType.code,
+      )[0]
+      const baseRecords = baseCalculator.getBaseRecords(topicData, {
+        filter: {
+          locationTypeCode: location.type,
+          locationCodes: [location.code],
+        },
+        group: {
+          locationTypeCode: breakdownLocationType.code,
+        },
+      })
+
+      const topRecords: TopRecord[] = baseRecords.map(
+        (baseRecord: BaseRecord): TopRecord => {
+          const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
+          const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
+          const value = getSnapshot(baseRecord)
+          return { baseRecord, location, value }
+        },
       )
-        .filter((mainRecord) => {
-          if (location.code === locationData.rootLocation.code) {
-            return true
-          }
-          return mainRecord.locationCode === location.code || mainRecord.locationCode.startsWith(`${location.code}-`)
-        })
-        .map(
-          (mainRecord): TopRecord => {
-            const location = locationByCode[mainRecord.locationCode]
-            const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-            const value = getSnapshot(mainRecord)
-            return { mainRecord, location, value }
-          },
-        )
 
       currentTopRecords.push(...topRecords)
 
@@ -93,14 +97,14 @@ export class ChatService {
     topRecords.sort(
       compareBy<TopRecord>({
         getValue: ({ value }) => value,
-        ascendingOrder: metricInfo.defaultAsc,
+        ascendingOrder: metric.defaultAsc,
       }),
     )
 
     const chartConfig: ChartConfig = {
       type: 'line',
       data: {
-        labels: mainData.referenceData.dates,
+        labels: topicData.dates,
         datasets: topRecords.slice(0, 7).map((topRecord, index) => {
           const color = colors[index % colors.length]
           return {
@@ -108,71 +112,74 @@ export class ChatService {
             fill: false,
             backgroundColor: color,
             borderColor: color,
-            data: mainData.referenceData.dates.map((date) => {
+            data: topicData.dates.map((date) => {
               const getSnapshot = metricCalculatorByType[metricType].getSnapshot({
                 ...snapshotContext,
                 currentDate: date,
               })
-              return getSnapshot(topRecord.mainRecord)
+              return getSnapshot(topRecord.baseRecord)
             }),
           }
         }),
       },
     }
 
-    const chartImagePath = await chartGenerator.downloadChartImage(chartConfig)
+    const chartShortPath = await chartManager.generateChart(chartConfig)
 
     return {
-      message: `${metricInfo.name} of ${chartConfig.data.datasets
+      message: `${metric.name} of ${chartConfig.data.datasets
         .map(({ label }: ChartDatasetConfig) => label)
         .join(', ')}`,
-      imageUrl: `${HOST_URL}/api/data/${chartImagePath}`,
+      imageUrl: `${HOST_URL}/api/data/${chartShortPath}`,
     }
   }
 
   private getTop (params: StatisticsParams, snapshotContext: SnapshotContext): StatisticsResult {
     const messageLines: string[] = []
     const metricType: MetricType = params.metricTypes[0]
-    const metricInfo = metricInfoByType[metricType]
+    const metricInfo = metricByType[metricType]
     const metricFormat = metricFormatByType[metricInfo.formatType || 'decimal']
+    const { topicData, topicConfig } = snapshotContext.metricContext
 
     params.locationQueries.find((locationQuery) => {
-      const foundLocation = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
-      if (!foundLocation) {
+      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      if (!location) {
         return false
       }
-      const { mainData, datasetConfig } = snapshotContext.metricContext
-      const { locationData } = mainData.referenceData
+
       const breakdownLocationType =
-        datasetConfig.locationConfig.locationTypes.find((locationType) => {
+        topicConfig.locationConfig.locationTypes.find((locationType) => {
           return locationType.code === params.breakdownLocationTypeCode
-        }) || datasetConfig.locationConfig.locationTypes[0]
-      const { location } = foundLocation
-      const { locationByCode } = locationData.locationRecordByType[breakdownLocationType.code]
-      const topRecords: TopRecord[] = Object.values(
-        mainData.mainRecordByLocationTypeAndCode[breakdownLocationType.code],
+        }) || topicConfig.locationConfig.locationTypes[0]
+
+      const breakdownLocationGroup = topicData.locationGroups.filter(
+        ({ locationType }) => locationType.code === breakdownLocationType.code,
+      )[0]
+      const baseRecords = baseCalculator.getBaseRecords(topicData, {
+        filter: {
+          locationTypeCode: location.type,
+          locationCodes: [location.code],
+        },
+        group: {
+          locationTypeCode: breakdownLocationType.code,
+        },
+      })
+
+      const topRecords: TopRecord[] = baseRecords.map(
+        (baseRecord: BaseRecord): TopRecord => {
+          const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
+          const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
+          const value = getSnapshot(baseRecord)
+          return { baseRecord, location, value }
+        },
       )
-        .filter((mainRecord) => {
-          if (location.code === locationData.rootLocation.code) {
-            return true
-          }
-          return mainRecord.locationCode === location.code || mainRecord.locationCode.startsWith(`${location.code}-`)
-        })
-        .map(
-          (mainRecord): TopRecord => {
-            const location = locationByCode[mainRecord.locationCode]
-            const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-            const value = getSnapshot(mainRecord)
-            return { mainRecord, location, value }
-          },
-        )
       topRecords.sort(
         compareBy<TopRecord>({
           getValue: ({ value }) => value,
           ascendingOrder: metricInfo.defaultAsc,
         }),
       )
-      const inLocation: string = location.code === locationData.rootLocation.code ? ' ' : ` in ${location.name} `
+      const inLocation: string = location.code === topicData.rootLocation.code ? ' ' : ` in ${location.name} `
       messageLines.push(
         `Top ${breakdownLocationType.name} of ${metricInfo.name}${inLocation}(*${snapshotContext.currentDate}*)`,
         '',
@@ -190,36 +197,33 @@ export class ChatService {
   private getSummary (params: StatisticsParams, snapshotContext: SnapshotContext): StatisticsResult {
     const messageLines: string[] = []
 
-    params.locationQueries.forEach((locationQuery) => {
-      messageLines.push('---', '')
-      const foundLocation = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
-      if (!foundLocation) {
+    params.locationQueries.forEach((locationQuery, locationQueryIndex) => {
+      if (locationQueryIndex > 0) {
+        messageLines.push('---', '')
+      }
+      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      if (!location) {
         messageLines.push(`${locationQuery}: cannot find this location`)
       } else {
-        const { location, mainRecord } = foundLocation
-        messageLines.push(...this.getSummaryStatisticsForRecord(location, mainRecord, snapshotContext, params))
+        messageLines.push(...this.getSummaryForLocation(location, snapshotContext, params))
       }
       messageLines.push('')
     })
-    messageLines.push('---')
 
     return { message: messageLines.join('\n') }
   }
 
-  private findLocation (locationQuery: string, snapshotContext: SnapshotContext) {
-    const { mainData, datasetConfig } = snapshotContext.metricContext
-    const { locationData } = mainData.referenceData
+  private findLocation (locationQuery: string, snapshotContext: SnapshotContext): Location | undefined {
+    const { topicData } = snapshotContext.metricContext
 
-    if (stringSimilarity.compareTwoStrings(locationQuery, locationData.rootLocation.name.toLowerCase()) > 0.8) {
-      return { location: locationData.rootLocation, mainRecord: mainData.rootRecord }
+    if (stringSimilarity.compareTwoStrings(locationQuery, topicData.rootLocation.name.toLowerCase()) > 0.8) {
+      return topicData.rootLocation
     }
 
-    for (const locationType of datasetConfig.locationConfig.locationTypes) {
-      const { locationByCode } = locationData.locationRecordByType[locationType.code]
-
+    for (const locationGroup of topicData.locationGroups) {
       let bestLocation: Location | undefined
       let bestSimilarity = 0
-      Object.values(locationByCode).forEach((location) => {
+      Object.values(locationGroup.locationByCode).forEach((location) => {
         const similarity = stringSimilarity.compareTwoStrings(locationQuery, location.name.toLowerCase())
         if (similarity > 0.5 && similarity > bestSimilarity) {
           bestLocation = location
@@ -228,29 +232,36 @@ export class ChatService {
       })
 
       if (bestLocation) {
-        const mainRecordByLocationCode = mainData.mainRecordByLocationTypeAndCode[locationType.code]
-        return { location: bestLocation, mainRecord: mainRecordByLocationCode[bestLocation.code] }
+        return bestLocation
       }
     }
 
     return undefined
   }
 
-  private getSummaryStatisticsForRecord (
+  private getSummaryForLocation (
     location: Location,
-    mainRecord: MainRecord,
     snapshotContext: SnapshotContext,
     params: StatisticsParams,
   ): string[] {
+    const baseRecords = baseCalculator.getBaseRecords(snapshotContext.metricContext.topicData, {
+      filter: {
+        locationTypeCode: location.type,
+        locationCodes: [location.code],
+      },
+      group: {
+        locationTypeCode: location.type,
+      },
+    })
     const messageLinesForLocation = [
       `Summary of ${location.name} (*${snapshotContext.currentDate}*)`,
       '',
       ...params.metricTypes.map((metricType) => {
-        const metricInfo = metricInfoByType[metricType]
+        const metric = metricByType[metricType]
         const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-        const value = getSnapshot(mainRecord)
-        const metricFormat = metricFormatByType[metricInfo.formatType || 'decimal']
-        return `${metricInfo.name}: *${metricFormat.apply(value)}*`
+        const value = getSnapshot(baseRecords[0])
+        const metricFormat = metricFormatByType[metric.formatType || 'decimal']
+        return `${metric.name}: *${metricFormat.apply(value)}*`
       }),
     ]
     return messageLinesForLocation
