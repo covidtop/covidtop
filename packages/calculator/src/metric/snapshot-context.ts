@@ -1,5 +1,4 @@
-import { MainRecord } from '@covidtop/shared/lib/dataset'
-
+import { BaseRecord } from '../base'
 import { MetricContext } from './metric-context'
 
 export interface SnapshotContext {
@@ -7,4 +6,4 @@ export interface SnapshotContext {
   readonly currentDate: string
 }
 
-export type CalculateSnapshot = (context: SnapshotContext) => (mainRecord: MainRecord) => number | undefined
+export type CalculateSnapshot = (context: SnapshotContext) => (baseRecord: BaseRecord) => number | undefined
