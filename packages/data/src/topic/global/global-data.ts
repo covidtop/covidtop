@@ -40,7 +40,7 @@ export const loadGlobalTopicData: LoadTopicData = async (): Promise<TopicData> =
   const deathsFile = await parseDeathsFile()
   const recoveredFile = await parseRecoveredFile()
 
-  const { locationGroups, dates, topicRecords } = mergeJhuMeasureFiles(
+  const { dates, locationGroups, topicRecords } = mergeJhuMeasureFiles(
     [confirmedFile, deathsFile, recoveredFile],
     globalConfig,
   )

@@ -35,7 +35,7 @@ export const loadUsTopicData: LoadTopicData = async (): Promise<TopicData> => {
   const confirmedFile = await parseConfirmedFile()
   const deathsFile = await parseDeathsFile()
 
-  const { locationGroups, dates, topicRecords } = mergeJhuMeasureFiles([confirmedFile, deathsFile], usConfig)
+  const { dates, locationGroups, topicRecords } = mergeJhuMeasureFiles([confirmedFile, deathsFile], usConfig)
 
   return {
     rootLocation: usConfig.locationConfig.rootLocation,
