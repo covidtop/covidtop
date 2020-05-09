@@ -1,6 +1,7 @@
 import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
 import { getNowText } from '@covidtop/shared/lib/utils'
 
+import { objectHasher } from '../source/common'
 import { allTopicLoaders, TopicLoader } from '../topic'
 import { dataIo } from './data-io'
 
@@ -10,7 +11,7 @@ const updateTopicSummary = async (
   previousTopicSummary?: TopicSummary,
 ): Promise<TopicSummary> => {
   const lastChecked = getNowText()
-  const dataHash = dataIo.hash(topicData)
+  const dataHash = objectHasher.hash(topicData)
 
   if (previousTopicSummary && previousTopicSummary.dataHash === dataHash) {
     return dataIo.writeTopicSummary({

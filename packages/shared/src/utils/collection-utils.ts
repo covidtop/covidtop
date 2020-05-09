@@ -1,3 +1,7 @@
+import fastSort from 'fast-sort'
+
+export { fastSort }
+
 export const keyBy = <T, K extends string>(
   items: T[],
   getKey: (item: T, index: number) => K,

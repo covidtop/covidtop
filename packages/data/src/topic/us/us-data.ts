@@ -1,7 +1,7 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
-import { sourceHelper } from '../../source/common'
+import { codeGenerator } from '../../source/common'
 import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { usConfig, usLocationTypes } from './us-config'
@@ -11,13 +11,13 @@ const getUsLocations = (row: Record<string, string>): Location[] => {
   const county = row.Admin2
   const stateLocation: Location = {
     type: usLocationTypes.state.code,
-    code: sourceHelper.getCodeFromName(state),
+    code: codeGenerator.getCodeFromName(state),
     name: state,
   }
   const countyName = county ? `${state} - ${county}` : state
   const countyLocation: Location = {
     type: usLocationTypes.county.code,
-    code: sourceHelper.getCodeFromName(countyName),
+    code: codeGenerator.getCodeFromName(countyName),
     name: countyName,
   }
   return [stateLocation, countyLocation]

@@ -1,7 +1,6 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { MeasureType } from '@covidtop/shared/lib/measure'
-import { parseDate, toDateText } from '@covidtop/shared/lib/utils'
-import fastSort from 'fast-sort'
+import { fastSort, parseDate, toDateText } from '@covidtop/shared/lib/utils'
 
 import { CsvRow, parseCsvFile } from '../common'
 import { gitHubSource } from '../github'

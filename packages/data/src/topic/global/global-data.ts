@@ -1,7 +1,7 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
-import { sourceHelper } from '../../source/common'
+import { codeGenerator } from '../../source/common'
 import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { globalConfig, globalLocationTypes } from './global-config'
@@ -11,13 +11,13 @@ const getGlobalLocations = (row: Record<string, string>): Location[] => {
   const provinceState = row['Province/State']
   const countryRegionLocation: Location = {
     type: globalLocationTypes.countryRegion.code,
-    code: sourceHelper.getCodeFromName(countryRegion),
+    code: codeGenerator.getCodeFromName(countryRegion),
     name: countryRegion,
   }
   const provinceStateName = provinceState ? `${countryRegion} - ${provinceState}` : countryRegion
   const provinceStateLocation: Location = {
     type: globalLocationTypes.provinceState.code,
-    code: sourceHelper.getCodeFromName(provinceStateName),
+    code: codeGenerator.getCodeFromName(provinceStateName),
     name: provinceStateName,
   }
   return [countryRegionLocation, provinceStateLocation]

@@ -1,5 +1,4 @@
-import { getAllKeys } from '@covidtop/shared/lib/utils'
-import fastSort from 'fast-sort'
+import { fastSort, getAllKeys } from '@covidtop/shared/lib/utils'
 import neatCsv from 'neat-csv'
 
 export type CsvRow = Readonly<Record<string, string>>
