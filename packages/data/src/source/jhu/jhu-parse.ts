@@ -43,7 +43,7 @@ export const parseJhuMeasureFile = async (
   filePath: string,
   getLocations: (row: Record<string, string>) => Location[],
 ): Promise<JhuMeasureFile> => {
-  const fileContent = await gitHubSource.downloadFile(
+  const fileContent = await gitHubSource.getContent(
     'CSSEGISandData',
     'COVID-19',
     `csse_covid_19_data/csse_covid_19_time_series/${filePath}`,
