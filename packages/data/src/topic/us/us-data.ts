@@ -1,12 +1,12 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
-import { codeGenerator } from '../../source/common'
+import { codeGenerator, CsvRow } from '../../source/common'
 import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { usConfig, usLocationTypes } from './us-config'
 
-const getUsLocations = (row: Record<string, string>): Location[] => {
+const getUsLocations = (row: CsvRow): Location[] => {
   const state = row.Province_State
   const county = row.Admin2
   const stateLocation: Location = {

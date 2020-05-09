@@ -40,7 +40,7 @@ const getTotalByDate = (
 export const parseJhuMeasureFile = async (
   measureType: MeasureType,
   filePath: string,
-  getLocations: (row: Record<string, string>) => Location[],
+  getLocations: (row: CsvRow) => Location[],
 ): Promise<JhuMeasureFile> => {
   const fileContent = await gitHubApi.getContent(
     'CSSEGISandData',
