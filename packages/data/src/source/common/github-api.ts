@@ -1,4 +1,4 @@
-import { downloader } from '../common'
+import { downloader } from './downloader'
 
 const baseUrl = 'https://raw.githubusercontent.com'
 
@@ -6,6 +6,6 @@ const getContent = async (owner: string, repo: string, filePath: string, ref = '
   return downloader.getText(`${baseUrl}/${owner}/${repo}/${ref}/${filePath}`)
 }
 
-export const gitHubSource = {
+export const gitHubApi = {
   getContent,
 }

@@ -2,8 +2,7 @@ import { Location } from '@covidtop/shared/lib/location'
 import { MeasureType } from '@covidtop/shared/lib/measure'
 import { fastSort, parseDate, toDateText } from '@covidtop/shared/lib/utils'
 
-import { CsvRow, parseCsvFile } from '../common'
-import { gitHubSource } from '../github'
+import { CsvRow, gitHubApi, parseCsvFile } from '../common'
 import { JhuMeasureFile } from './jhu-measure-file'
 import { JhuRecord } from './jhu-record'
 
@@ -43,7 +42,7 @@ export const parseJhuMeasureFile = async (
   filePath: string,
   getLocations: (row: Record<string, string>) => Location[],
 ): Promise<JhuMeasureFile> => {
-  const fileContent = await gitHubSource.getContent(
+  const fileContent = await gitHubApi.getContent(
     'CSSEGISandData',
     'COVID-19',
     `csse_covid_19_data/csse_covid_19_time_series/${filePath}`,
