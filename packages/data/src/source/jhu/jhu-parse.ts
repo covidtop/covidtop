@@ -1,21 +1,18 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { MeasureType } from '@covidtop/shared/lib/measure'
-import { getAllKeys, parseDate, toDateText } from '@covidtop/shared/lib/utils'
-import axios from 'axios'
+import { parseDate, toDateText } from '@covidtop/shared/lib/utils'
 import fastSort from 'fast-sort'
-import neatCsv from 'neat-csv'
 
+import { CsvRow, parseCsvFile } from '../common'
+import { gitHubSource } from '../github'
 import { JhuMeasureFile } from './jhu-measure-file'
 import { JhuRecord } from './jhu-record'
 
-const baseDirUrl =
-  'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series'
-
-const getHeaderByDate = (rows: neatCsv.Row[]): Readonly<Record<string, string>> => {
+const getHeaderByDate = (headers: string[]): Readonly<Record<string, string>> => {
   const refDate = new Date()
   const headerByDate: Record<string, string> = {}
 
-  getAllKeys(rows).forEach((header) => {
+  headers.forEach((header) => {
     try {
       const date = toDateText(parseDate(header, 'M/d/yy', refDate))
       headerByDate[date] = header
@@ -28,7 +25,7 @@ const getHeaderByDate = (rows: neatCsv.Row[]): Readonly<Record<string, string>> 
 }
 
 const getTotalByDate = (
-  row: neatCsv.Row,
+  row: CsvRow,
   dates: string[],
   headerByDate: Record<string, string>,
 ): Readonly<Record<string, number>> => {
@@ -47,10 +44,14 @@ export const parseJhuMeasureFile = async (
   filePath: string,
   getLocations: (row: Record<string, string>) => Location[],
 ): Promise<JhuMeasureFile> => {
-  const fileContent = (await axios.get(`${baseDirUrl}/${filePath}`, { responseType: 'text' })).data
-  const rows = await neatCsv(fileContent)
+  const fileContent = await gitHubSource.downloadFile(
+    'CSSEGISandData',
+    'COVID-19',
+    `csse_covid_19_data/csse_covid_19_time_series/${filePath}`,
+  )
+  const { headers, rows } = await parseCsvFile(fileContent)
 
-  const headerByDate: Record<string, string> = getHeaderByDate(rows)
+  const headerByDate: Record<string, string> = getHeaderByDate(headers)
   const dates = Object.keys(headerByDate)
   fastSort(dates).asc()
 
