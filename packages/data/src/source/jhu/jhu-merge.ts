@@ -97,8 +97,8 @@ const getTopicRecords = (measureFiles: JhuMeasureFile[], topicConfig: TopicConfi
 
 export interface JhuMeasureFileMergeResult {
   readonly dates: string[]
-  readonly topicRecords: TopicRecord[]
   readonly locationGroups: LocationGroup[]
+  readonly topicRecords: TopicRecord[]
 }
 
 export const mergeJhuMeasureFiles = (
@@ -110,8 +110,8 @@ export const mergeJhuMeasureFiles = (
   const topicRecords: TopicRecord[] = getTopicRecords(measureFiles, topicConfig, dates)
 
   return {
-    locationGroups,
     dates,
+    locationGroups,
     topicRecords,
   }
 }

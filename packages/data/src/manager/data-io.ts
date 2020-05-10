@@ -1,16 +1,8 @@
 import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
-import { AxiosResponse } from 'axios'
 import fse from 'fs-extra'
-import createObjectHasher from 'node-object-hash'
 import path from 'path'
 
 const TOPIC_VERSION = 'v1.0'
-
-const objectHasher = createObjectHasher()
-
-const hash = (data: object): string => {
-  return objectHasher.hash(data)
-}
 
 const topicDataPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
 
@@ -74,27 +66,21 @@ const getChartShortPath = (imageId: string) => {
   return joinShortPath('chart', `${imageId}.png`)
 }
 
-const downloadChart = async (imageId: string, response: AxiosResponse): Promise<string> => {
+const getChartPaths = (imageId: string) => {
   const chartShortPath = getChartShortPath(imageId)
   const chartFullPath = getFullPath(chartShortPath)
 
-  await fse.ensureDir(path.dirname(chartFullPath))
-  const writer = fse.createWriteStream(chartFullPath)
-  response.data.pipe(writer)
-  await new Promise((resolve, reject) => {
-    writer.on('finish', resolve)
-    writer.on('error', reject)
-  })
-
-  return chartShortPath
+  return {
+    chartShortPath,
+    chartFullPath,
+  }
 }
 
 export const dataIo = {
-  hash,
   ensureTopicDataDir,
   readTopicSummary,
   writeTopicSummary,
   readTopicData,
   writeTopicData,
-  downloadChart,
+  getChartPaths,
 }
