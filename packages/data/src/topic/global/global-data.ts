@@ -1,26 +1,28 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
-import { codeGenerator, CsvRow } from '../../source/common'
+import { codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
 import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { globalConfig, globalLocationTypes } from './global-config'
 
 const getGlobalLocations = (row: CsvRow): Location[] => {
   const countryRegion = row['Country/Region']
-  const provinceState = row['Province/State']
   const countryRegionLocation: Location = {
     type: globalLocationTypes.countryRegion.code,
     code: codeGenerator.getCodeFromName(countryRegion),
     name: countryRegion,
   }
+
+  const provinceState = row['Province/State']
   const provinceStateName = provinceState ? `${countryRegion} - ${provinceState}` : countryRegion
   const provinceStateLocation: Location = {
     type: globalLocationTypes.provinceState.code,
     code: codeGenerator.getCodeFromName(provinceStateName),
     name: provinceStateName,
   }
-  return [countryRegionLocation, provinceStateLocation]
+
+  return locationDataHelper.normaliseLocations([countryRegionLocation, provinceStateLocation], globalConfig)
 }
 
 const parseConfirmedFile = (): Promise<JhuMeasureFile> => {

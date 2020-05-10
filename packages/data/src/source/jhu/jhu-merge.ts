@@ -1,7 +1,8 @@
-import { Location, LocationGroup } from '@covidtop/shared/lib/location'
+import { LocationGroup } from '@covidtop/shared/lib/location'
 import { TopicConfig, TopicRecord } from '@covidtop/shared/lib/topic'
-import { getDatesBetween, getMax, getMin, keyBy } from '@covidtop/shared/lib/utils'
+import { flatMap, getDatesBetween, getMax, getMin, keyBy } from '@covidtop/shared/lib/utils'
 
+import { locationDataHelper } from '../common'
 import { JhuMeasureFile } from './jhu-measure-file'
 import { JhuRecord } from './jhu-record'
 
@@ -12,25 +13,6 @@ const getAllDates = (measureFiles: JhuMeasureFile[]): string[] => {
     throw new Error('No date found')
   }
   return getDatesBetween(minDate, maxDate)
-}
-
-const getLocationGroups = (measureFiles: JhuMeasureFile[], topicConfig: TopicConfig): LocationGroup[] => {
-  return topicConfig.locationConfig.locationTypes.map(
-    (locationType, locationIndex): LocationGroup => {
-      const locationByCode: Record<string, Location> = {}
-      measureFiles.forEach((measureFile) => {
-        measureFile.records.forEach((record) => {
-          const location = record.locations[locationIndex]
-          locationByCode[location.code] = location
-        })
-      })
-
-      return {
-        locationType,
-        locationByCode,
-      }
-    },
-  )
 }
 
 const getValuePerDate = (record: JhuRecord, dates: string[]): number[] => {
@@ -52,11 +34,11 @@ const getValuePerDate = (record: JhuRecord, dates: string[]): number[] => {
 
 const getTopicRecord = (
   topicRecordByLocationKey: Record<string, TopicRecord>,
-  locationCodes: string[],
+  jhuRecord: JhuRecord,
   topicConfig: TopicConfig,
   dates: string[],
 ): TopicRecord => {
-  const locationKey = locationCodes.join('$')
+  const locationKey = locationDataHelper.getLocationKey(jhuRecord)
 
   const existingTopicRecord: TopicRecord | undefined = topicRecordByLocationKey[locationKey]
   if (existingTopicRecord) {
@@ -64,7 +46,7 @@ const getTopicRecord = (
   }
 
   const topicRecord: TopicRecord = {
-    locationCodePerType: locationCodes,
+    locationCodePerType: locationDataHelper.getLocationCodes(jhuRecord),
     measurePerTypeAndDate: topicConfig.measureConfig.measureTypes.map(() => {
       return dates.map(() => 0)
     }),
@@ -86,8 +68,7 @@ const getTopicRecords = (measureFiles: JhuMeasureFile[], topicConfig: TopicConfi
     }
 
     measureFile.records.forEach((record) => {
-      const locationCodes = record.locations.map(({ code }) => code)
-      const topicRecord = getTopicRecord(topicRecordByLocationKey, locationCodes, topicConfig, dates)
+      const topicRecord = getTopicRecord(topicRecordByLocationKey, record, topicConfig, dates)
       topicRecord.measurePerTypeAndDate[measureIndex] = getValuePerDate(record, dates)
     })
   })
@@ -106,7 +87,12 @@ export const mergeJhuMeasureFiles = (
   topicConfig: TopicConfig,
 ): JhuMeasureFileMergeResult => {
   const dates: string[] = getAllDates(measureFiles)
-  const locationGroups: LocationGroup[] = getLocationGroups(measureFiles, topicConfig)
+
+  const locationGroups: LocationGroup[] = locationDataHelper.getLocationGroups(
+    flatMap(measureFiles, ({ records }) => records),
+    topicConfig,
+  )
+
   const topicRecords: TopicRecord[] = getTopicRecords(measureFiles, topicConfig, dates)
 
   return {

@@ -105,3 +105,10 @@ export const compareBy = <T>(options: CompareByOptions<T>): Comparator<T> => {
     return compareDefinedValues(firstValue, secondValue, ascendingOrder)
   }
 }
+
+export const flatMap = <T, V>(items: T[], getValues: (item: T) => V[]): V[] => {
+  return items.reduce((currentValues: V[], item: T) => {
+    currentValues.push(...getValues(item))
+    return currentValues
+  }, [])
+}

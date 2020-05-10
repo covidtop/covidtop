@@ -1,26 +1,28 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
-import { codeGenerator, CsvRow } from '../../source/common'
+import { codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
 import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { usConfig, usLocationTypes } from './us-config'
 
 const getUsLocations = (row: CsvRow): Location[] => {
   const state = row.Province_State
-  const county = row.Admin2
   const stateLocation: Location = {
     type: usLocationTypes.state.code,
     code: codeGenerator.getCodeFromName(state),
     name: state,
   }
+
+  const county = row.Admin2
   const countyName = county ? `${state} - ${county}` : state
   const countyLocation: Location = {
     type: usLocationTypes.county.code,
     code: codeGenerator.getCodeFromName(countyName),
     name: countyName,
   }
-  return [stateLocation, countyLocation]
+
+  return locationDataHelper.normaliseLocations([stateLocation, countyLocation], usConfig)
 }
 
 const parseConfirmedFile = (): Promise<JhuMeasureFile> => {
