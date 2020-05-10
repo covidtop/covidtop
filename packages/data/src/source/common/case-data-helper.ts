@@ -27,13 +27,13 @@ const getTopicRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig, da
   )
 }
 
-export interface ProcessCaseRecordResult {
+export interface CaseRecordProcessResult {
   readonly dates: string[]
   readonly topicRecords: TopicRecord[]
   readonly locationGroups: LocationGroup[]
 }
 
-const processCaseRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig): ProcessCaseRecordResult => {
+const processCaseRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig): CaseRecordProcessResult => {
   const sortedCaseRecords = [...caseRecords]
   fastSort(sortedCaseRecords).asc(({ date }) => date)
   const minDate = sortedCaseRecords[0].date
