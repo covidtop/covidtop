@@ -1,1 +1,1 @@
-export * from './nsw-config'
+export * from './nsw-loader'
