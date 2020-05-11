@@ -1,94 +1,98 @@
-import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
+import { TopicConfig, TopicData, TopicHolder, TopicInfo } from '@covidtop/shared/lib/topic'
 import { getNowText } from '@covidtop/shared/lib/utils'
 
 import { objectHasher } from '../source/common'
 import { allTopicLoaders, TopicLoader } from '../topic'
 import { dataIo } from './data-io'
 
-const updateTopicSummary = async (
+const updateTopicInfo = async (
   topicData: TopicData,
   topicConfig: TopicConfig,
-  previousTopicSummary?: TopicSummary,
-): Promise<TopicSummary> => {
+  previousTopicInfo?: TopicInfo,
+): Promise<TopicInfo> => {
   const lastChecked = getNowText()
   const dataHash = objectHasher.hash(topicData)
 
-  if (previousTopicSummary && previousTopicSummary.dataHash === dataHash) {
-    return dataIo.writeTopicSummary({
-      ...previousTopicSummary,
-      lastChecked,
-    })
+  if (previousTopicInfo && previousTopicInfo.dataHash === dataHash) {
+    return dataIo.writeTopicInfo(
+      {
+        ...previousTopicInfo,
+        lastChecked,
+      },
+      topicConfig,
+    )
   }
 
-  const { locationGroups, dates } = topicData
   const dataPath = await dataIo.writeTopicData(topicData, dataHash, topicConfig)
 
-  return dataIo.writeTopicSummary({
+  return dataIo.writeTopicInfo(
+    {
+      lastChecked,
+      lastUpdated: lastChecked,
+      dataHash,
+      dataPath,
+    },
     topicConfig,
-    lastChecked,
-    lastUpdated: lastChecked,
-    dataHash,
-    dataPath,
-    locationGroups,
-    minDate: dates[0],
-    maxDate: dates[dates.length - 1],
-  })
+  )
 }
 
 export interface RefreshOptions {
   readonly skipIfExists: boolean
 }
 
-const refreshTopic = async (topicLoader: TopicLoader, { skipIfExists }: RefreshOptions): Promise<TopicSummary> => {
+const refreshTopic = async (topicLoader: TopicLoader, { skipIfExists }: RefreshOptions): Promise<TopicHolder> => {
   const { topicConfig } = topicLoader
 
   await dataIo.ensureTopicDataDir(topicConfig)
-  const previousTopicSummary = await dataIo.readTopicSummary(topicConfig)
+  const previousTopicInfo = await dataIo.readTopicInfo(topicConfig)
 
-  if (skipIfExists && previousTopicSummary) {
-    return previousTopicSummary
+  if (skipIfExists && previousTopicInfo) {
+    const previousTopicData = await dataIo.readTopicData(previousTopicInfo)
+
+    if (previousTopicData) {
+      console.log(`Refresh topic '${topicConfig.id}': SKIPPED`)
+
+      return {
+        topicConfig,
+        topicInfo: previousTopicInfo,
+        topicData: previousTopicData,
+      }
+    }
   }
 
   const topicData: TopicData = await topicLoader.loadTopicData()
-  return updateTopicSummary(topicData, topicConfig, previousTopicSummary)
+
+  return {
+    topicConfig,
+    topicInfo: await updateTopicInfo(topicData, topicConfig, previousTopicInfo),
+    topicData,
+  }
 }
 
-let cachedTopicSummaries: TopicSummary[] = []
+let cachedTopicHolders: TopicHolder[] = []
 
 const refreshAllTopics = async (options: RefreshOptions): Promise<void> => {
   console.log('Refresh all topics: START')
-  const topicSummaries: TopicSummary[] = []
+  const topicHolders: TopicHolder[] = []
   for (const topicLoader of allTopicLoaders) {
     try {
       console.log(`Refresh topic '${topicLoader.topicConfig.id}': START`)
-      topicSummaries.push(await refreshTopic(topicLoader, options))
+      topicHolders.push(await refreshTopic(topicLoader, options))
       console.log(`Refresh topic '${topicLoader.topicConfig.id}': DONE`)
     } catch (err) {
       console.log(`Refresh topic '${topicLoader.topicConfig.id}': FAILED`)
       console.log(err)
     }
   }
-  cachedTopicSummaries = topicSummaries
+  cachedTopicHolders = topicHolders
   console.log('Refresh all topics: DONE')
 }
 
-const getTopicSummaries = (): TopicSummary[] => {
-  return cachedTopicSummaries
-}
-
-const getTopicData = async (topicLoader: TopicLoader): Promise<TopicData | undefined> => {
-  const { topicConfig } = topicLoader
-  const topicSummary = await dataIo.readTopicSummary(topicConfig)
-
-  if (!topicSummary) {
-    return
-  }
-
-  return dataIo.readTopicData(topicSummary)
+const getTopicHolders = (): TopicHolder[] => {
+  return cachedTopicHolders
 }
 
 export const dataManager = {
   refreshAllTopics,
-  getTopicSummaries,
-  getTopicData,
+  getTopicHolders,
 }

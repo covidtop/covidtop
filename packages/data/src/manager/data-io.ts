@@ -1,8 +1,8 @@
-import { TopicConfig, TopicData, TopicSummary } from '@covidtop/shared/lib/topic'
+import { TopicConfig, TopicData, TopicInfo } from '@covidtop/shared/lib/topic'
 import fse from 'fs-extra'
 import path from 'path'
 
-const TOPIC_VERSION = 'v1.0'
+const TOPIC_VERSION = 'v1.1'
 
 const topicDataPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
 
@@ -16,30 +16,30 @@ const getTopicShortPath = (topicConfig: TopicConfig) => {
   return joinShortPath('topic', TOPIC_VERSION, topicConfig.id)
 }
 
-const getTopicSummaryShortPath = (topicConfig: TopicConfig) => {
-  return joinShortPath(getTopicShortPath(topicConfig), 'summary.json')
+const getTopicInfoShortPath = (topicConfig: TopicConfig) => {
+  return joinShortPath(getTopicShortPath(topicConfig), 'info.json')
 }
 
 const ensureTopicDataDir = async (topicConfig: TopicConfig) => {
   await fse.ensureDir(getFullPath(getTopicShortPath(topicConfig)))
 }
 
-const readTopicSummary = async (topicConfig: TopicConfig): Promise<TopicSummary | undefined> => {
-  const topicSummaryFullPath = getFullPath(getTopicSummaryShortPath(topicConfig))
-  const topicSummaryExists = await fse.pathExists(topicSummaryFullPath)
-  if (!topicSummaryExists) {
+const readTopicInfo = async (topicConfig: TopicConfig): Promise<TopicInfo | undefined> => {
+  const topicInfoFullPath = getFullPath(getTopicInfoShortPath(topicConfig))
+  const topicInfoExists = await fse.pathExists(topicInfoFullPath)
+  if (!topicInfoExists) {
     return
   }
-  return fse.readJson(topicSummaryFullPath)
+  return fse.readJson(topicInfoFullPath)
 }
 
-const writeTopicSummary = async (topicSummary: TopicSummary): Promise<TopicSummary> => {
-  await fse.writeJson(getFullPath(getTopicSummaryShortPath(topicSummary.topicConfig)), topicSummary)
-  return topicSummary
+const writeTopicInfo = async (topicInfo: TopicInfo, topicConfig: TopicConfig): Promise<TopicInfo> => {
+  await fse.writeJson(getFullPath(getTopicInfoShortPath(topicConfig)), topicInfo)
+  return topicInfo
 }
 
-const readTopicData = async (topicSummary: TopicSummary): Promise<TopicData | undefined> => {
-  const topicDataFullPath = getFullPath(topicSummary.dataPath)
+const readTopicData = async (topicInfo: TopicInfo): Promise<TopicData | undefined> => {
+  const topicDataFullPath = getFullPath(topicInfo.dataPath)
 
   const topicDataExists = await fse.pathExists(topicDataFullPath)
   if (!topicDataExists) {
@@ -78,8 +78,8 @@ const getChartPaths = (imageId: string) => {
 
 export const dataIo = {
   ensureTopicDataDir,
-  readTopicSummary,
-  writeTopicSummary,
+  readTopicInfo,
+  writeTopicInfo,
   readTopicData,
   writeTopicData,
   getChartPaths,
