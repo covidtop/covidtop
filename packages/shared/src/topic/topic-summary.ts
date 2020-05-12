@@ -1,13 +1,11 @@
-import { LocationGroup } from '../location'
+import { LocationGroupSummary } from '../location'
 import { TopicConfig } from './topic-config'
+import { TopicInfo } from './topic-info'
 
 export interface TopicSummary {
   readonly topicConfig: TopicConfig
-  readonly lastChecked: string
-  readonly lastUpdated: string
-  readonly dataHash: string
-  readonly dataPath: string
-  readonly locationGroups: LocationGroup[]
+  readonly topicInfo: TopicInfo
+  readonly locationGroupSummaries: LocationGroupSummary[]
   readonly minDate: string
   readonly maxDate: string
 }

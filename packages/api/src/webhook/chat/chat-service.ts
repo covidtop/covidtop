@@ -1,10 +1,9 @@
 import { baseCalculator, BaseRecord } from '@covidtop/calculator/lib/base'
 import { metricCalculatorByType, SnapshotContext } from '@covidtop/calculator/lib/metric'
 import { ChartConfig, ChartDatasetConfig, chartManager, dataManager } from '@covidtop/data/lib/manager'
-import { globalLoader } from '@covidtop/data/lib/topic/global'
 import { Location } from '@covidtop/shared/lib/location'
 import { metricByType, metricFormatByType, MetricType } from '@covidtop/shared/lib/metric'
-import { TopicData } from '@covidtop/shared/lib/topic'
+import { TopicHolder } from '@covidtop/shared/lib/topic'
 import { compareBy } from '@covidtop/shared/lib/utils'
 import { Injectable } from '@nestjs/common'
 import config from 'config'
@@ -26,17 +25,21 @@ const colors: string[] = ['#3869B1', '#DA7E30', '#3F9852', '#CC2428', '#535055',
 @Injectable()
 export class ChatService {
   async getStatistics (params: StatisticsParams): Promise<StatisticsResult | undefined> {
-    const topicData: TopicData | undefined = await dataManager.getTopicData(globalLoader)
+    const topicHolder: TopicHolder | undefined = dataManager
+      .getTopicHolders()
+      .find(({ topicConfig }) => topicConfig.id === 'global')
 
-    if (!topicData) {
+    if (!topicHolder) {
       return
     }
+
+    const { topicData, topicConfig } = topicHolder
 
     const currentDate = topicData.dates[topicData.dates.length - 1]
     const snapshotContext: SnapshotContext = {
       metricContext: {
         topicData,
-        topicConfig: globalLoader.topicConfig,
+        topicConfig,
       },
       currentDate,
     }
