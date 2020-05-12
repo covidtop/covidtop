@@ -1,9 +1,9 @@
 import { TopicSummary } from '@covidtop/shared/lib/topic'
-import axios from 'axios'
 import { GetServerSideProps, NextPage } from 'next'
 
 import { PageLayout, TopSpace } from '../components/common'
 import { TopicList } from '../components/home/topic-list'
+import { apiClient } from '../utils/api-client'
 
 interface HomePageProps {
   readonly topicSummaries: TopicSummary[]
@@ -19,7 +19,7 @@ const HomePage: NextPage<HomePageProps> = ({ topicSummaries }) => {
 }
 
 export const getServerSideProps: GetServerSideProps<HomePageProps> = async () => {
-  const topicSummaries = (await axios.get<TopicSummary[]>('http://api:4100/topics')).data
+  const topicSummaries = (await apiClient.get<TopicSummary[]>('/topics')).data
 
   return {
     props: {

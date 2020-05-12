@@ -1,5 +1,6 @@
 import { TopicSummary } from '@covidtop/shared/lib/topic'
-import { Card, CardContent, Container, createStyles, makeStyles, Theme, Typography } from '@material-ui/core'
+import { Card, CardContent, Container, createStyles, Link, makeStyles, Theme, Typography } from '@material-ui/core'
+import PageLink from 'next/link'
 import { FunctionComponent } from 'react'
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -15,21 +16,26 @@ export interface TopicCardProps {
 }
 
 export const TopicCard: FunctionComponent<TopicCardProps> = ({ topicSummary }) => {
+  const { topicConfig, locationGroupSummaries } = topicSummary
   const classes = useStyles()
 
   return (
-    <Card className={classes.topicCard}>
-      <CardContent>
-        <Typography variant='h5' gutterBottom>
-          {topicSummary.topicConfig.name}
-        </Typography>
-        {topicSummary.locationGroupSummaries.map((locationGroupSummary) => (
-          <Typography variant='body2' key={locationGroupSummary.locationType.code}>
-            {locationGroupSummary.locationType.name}: {locationGroupSummary.lengthOfLocations}
-          </Typography>
-        ))}
-      </CardContent>
-    </Card>
+    <PageLink href='/topics/[topicId]' as={`/topics/${topicConfig.id}`}>
+      <Link href={`/topics/${topicConfig.id}`} underline='none'>
+        <Card className={classes.topicCard}>
+          <CardContent>
+            <Typography variant='h5' gutterBottom>
+              {topicConfig.name}
+            </Typography>
+            {locationGroupSummaries.map((locationGroupSummary) => (
+              <Typography variant='body2' key={locationGroupSummary.locationType.code}>
+                {locationGroupSummary.locationType.name}: {locationGroupSummary.lengthOfLocations}
+              </Typography>
+            ))}
+          </CardContent>
+        </Card>
+      </Link>
+    </PageLink>
   )
 }
 
