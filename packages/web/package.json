@@ -14,16 +14,16 @@
   "dependencies": {
     "@covidtop/calculator": "0.0.0",
     "@covidtop/shared": "0.0.0",
-    "@material-ui/core": "4.9.13",
+    "@material-ui/core": "4.9.14",
     "@material-ui/icons": "4.9.1",
     "axios": "0.19.2",
-    "next": "9.3.6",
+    "next": "9.4.0",
     "react": "16.13.1",
     "react-dom": "16.13.1"
   },
   "devDependencies": {
     "@covidtop/dev": "0.0.0",
     "@types/axios": "0.14.0",
-    "@types/react": "16.9.34"
+    "@types/react": "16.9.35"
   }
 }
