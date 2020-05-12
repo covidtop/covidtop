@@ -3,7 +3,7 @@ import { GetServerSideProps, NextPage } from 'next'
 
 import { PageLayout, TopSpace } from '../components/common'
 import { TopicList } from '../components/home/topic-list'
-import { apiClient } from '../utils/api-client'
+import { apiClient } from '../utils'
 
 interface HomePageProps {
   readonly topicSummaries: TopicSummary[]

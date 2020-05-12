@@ -3,8 +3,7 @@ import { Container, Typography } from '@material-ui/core'
 import { GetServerSideProps, NextPage } from 'next'
 
 import { PageLayout, TopSpace } from '../../components/common'
-import { queryHelper } from '../../utils'
-import { apiClient } from '../../utils/api-client'
+import { apiClient, queryHelper } from '../../utils'
 
 interface TopicPageProps {
   readonly topicId: string
