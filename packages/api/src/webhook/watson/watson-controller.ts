@@ -41,28 +41,19 @@ export class WatsonController {
   private getMetricTypes (metrics?: string[]): MetricType[] {
     const metricTypes: MetricType[] = []
     if (!metrics || metrics.includes('confirmed cases')) {
-      metricTypes.push('total-confirmed-value')
+      metricTypes.push('confirmed')
     }
     if (!metrics || metrics.includes('deaths')) {
-      metricTypes.push('total-deaths-value')
+      metricTypes.push('deaths')
     }
     if (!metrics || metrics.includes('recovered cases')) {
-      metricTypes.push('total-recovered-value')
+      metricTypes.push('recovered')
     }
     if (!metrics || metrics.includes('active cases')) {
-      metricTypes.push('total-active-value')
+      metricTypes.push('active')
     }
     if (!metrics || metrics.includes('fatality rate')) {
-      metricTypes.push('fatality-rate-value')
-    }
-    if (!metrics || metrics.includes('confirmed cases')) {
-      metricTypes.push('new-confirmed-value')
-    }
-    if (!metrics || metrics.includes('deaths')) {
-      metricTypes.push('new-deaths-value')
-    }
-    if (!metrics || metrics.includes('recovered cases')) {
-      metricTypes.push('new-recovered-value')
+      metricTypes.push('fatality-rate')
     }
     return metricTypes
   }

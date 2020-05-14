@@ -1,5 +1,3 @@
-import { getNewValueSnapshot, getTotalValueSnapshot } from './single-measure-metric'
+import { getSingleMeasureMetricFactory } from './single-measure-metric'
 
-export const getNewDeathsValueSnapshot = getNewValueSnapshot('deaths')
-
-export const getTotalDeathsValueSnapshot = getTotalValueSnapshot('deaths')
+export const deathsMetricBuilder = getSingleMeasureMetricFactory('deaths')

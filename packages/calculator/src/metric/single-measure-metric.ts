@@ -2,26 +2,29 @@ import { MeasureType } from '@covidtop/shared/lib/measure'
 import { sumBy } from '@covidtop/shared/lib/utils'
 
 import { BaseRecord } from '../base'
-import { CalculateSnapshot, SnapshotContext } from './snapshot-context'
+import { MetricBuilder } from './metric-calculator'
+import { MetricContext } from './metric-context'
+import { getTimePeriodResolver } from './time-period-resolver'
 
-export const getNewValueSnapshot = (measureType: MeasureType): CalculateSnapshot => {
-  return (context: SnapshotContext) => {
-    const measureIndex = context.metricContext.topicConfig.measureConfig.measureTypes.indexOf(measureType)
-    const currentDateIndex = context.metricContext.topicData.dates.indexOf(context.currentDate)
+export const getSingleMeasureMetricFactory = (measureType: MeasureType): MetricBuilder => {
+  return (metricContext: MetricContext) => {
+    const { topicConfig, topicData } = metricContext
+    const measureIndex = topicConfig.measureConfig.measureTypes.indexOf(measureType)
+    const timePeriodResolver = getTimePeriodResolver(metricContext)
+    const maxDateIndex = topicData.dates.length - 1
 
-    return (baseRecord: BaseRecord) => baseRecord.measurePerTypeAndDate[measureIndex][currentDateIndex]
-  }
-}
+    return (baseRecord: BaseRecord, dateIndex: number): number | undefined => {
+      const endDateIndex = dateIndex
+      const startDateIndex = timePeriodResolver.getStartDateIndex(endDateIndex)
 
-export const getTotalValueSnapshot = (measureType: MeasureType): CalculateSnapshot => {
-  return (context: SnapshotContext) => {
-    const measureIndex = context.metricContext.topicConfig.measureConfig.measureTypes.indexOf(measureType)
-    const currentDateIndex = context.metricContext.topicData.dates.indexOf(context.currentDate)
+      if (startDateIndex < 0 || endDateIndex > maxDateIndex) {
+        return
+      }
 
-    return (baseRecord: BaseRecord) =>
-      sumBy(
-        baseRecord.measurePerTypeAndDate[measureIndex].filter((measure, dateIndex) => dateIndex <= currentDateIndex),
-        (measure) => measure,
+      return sumBy(
+        baseRecord.measurePerTypeAndDate[measureIndex].slice(startDateIndex, endDateIndex + 1),
+        (value) => value,
       )
+    }
   }
 }

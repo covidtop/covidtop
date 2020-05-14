@@ -1,5 +1,3 @@
-import { getNewValueSnapshot, getTotalValueSnapshot } from './single-measure-metric'
+import { getSingleMeasureMetricFactory } from './single-measure-metric'
 
-export const getNewConfirmedValueSnapshot = getNewValueSnapshot('confirmed')
-
-export const getTotalConfirmedValueSnapshot = getTotalValueSnapshot('confirmed')
+export const confirmedMetricBuilder = getSingleMeasureMetricFactory('confirmed')

@@ -1,5 +1,5 @@
 import { baseCalculator, BaseRecord } from '@covidtop/calculator/lib/base'
-import { metricCalculatorByType, SnapshotContext } from '@covidtop/calculator/lib/metric'
+import { metricCalculatorByType, MetricContext } from '@covidtop/calculator/lib/metric'
 import { ChartConfig, ChartDatasetConfig, chartManager, dataManager } from '@covidtop/data/lib/manager'
 import { Location } from '@covidtop/shared/lib/location'
 import { metricByType, metricFormatByType, MetricType } from '@covidtop/shared/lib/metric'
@@ -35,32 +35,31 @@ export class ChatService {
 
     const { topicData, topicConfig } = topicHolder
 
-    const currentDate = topicData.dates[topicData.dates.length - 1]
-    const snapshotContext: SnapshotContext = {
-      metricContext: {
-        topicData,
-        topicConfig,
+    const metricContext: MetricContext = {
+      topicConfig,
+      topicData,
+      metricParams: {
+        timePeriod: { type: 'all' },
       },
-      currentDate,
     }
 
     const result =
       params.type === 'top'
-        ? this.getTop(params, snapshotContext)
+        ? this.getTop(params, metricContext)
         : params.type === 'trend'
-          ? await this.getTrend(params, snapshotContext)
-          : this.getSummary(params, snapshotContext)
+          ? await this.getTrend(params, metricContext)
+          : this.getSummary(params, metricContext)
 
     return result
   }
 
-  private async getTrend (params: StatisticsParams, snapshotContext: SnapshotContext): Promise<StatisticsResult> {
+  private async getTrend (params: StatisticsParams, metricContext: MetricContext): Promise<StatisticsResult> {
     const metricType: MetricType = params.metricTypes[0]
     const metric = metricByType[metricType]
-    const { topicData, topicConfig } = snapshotContext.metricContext
+    const { topicData, topicConfig } = metricContext
 
     const topRecords = params.locationQueries.reduce((currentTopRecords: TopRecord[], locationQuery) => {
-      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      const location = this.findLocation(locationQuery.toLowerCase(), metricContext)
       if (!location) {
         return currentTopRecords
       }
@@ -83,11 +82,13 @@ export class ChatService {
         },
       })
 
+      const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+      const currentDateIndex = topicData.dates.length - 1
+
       const topRecords: TopRecord[] = baseRecords.map(
         (baseRecord: BaseRecord): TopRecord => {
           const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
-          const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-          const value = getSnapshot(baseRecord)
+          const value = calculateMetric(baseRecord, currentDateIndex)
           return { baseRecord, location, value }
         },
       )
@@ -104,6 +105,8 @@ export class ChatService {
       }),
     )
 
+    const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+
     const chartConfig: ChartConfig = {
       type: 'line',
       data: {
@@ -115,12 +118,8 @@ export class ChatService {
             fill: false,
             backgroundColor: color,
             borderColor: color,
-            data: topicData.dates.map((date) => {
-              const getSnapshot = metricCalculatorByType[metricType].getSnapshot({
-                ...snapshotContext,
-                currentDate: date,
-              })
-              return getSnapshot(topRecord.baseRecord)
+            data: topicData.dates.map((date, dateIndex) => {
+              return calculateMetric(topRecord.baseRecord, dateIndex)
             }),
           }
         }),
@@ -137,15 +136,15 @@ export class ChatService {
     }
   }
 
-  private getTop (params: StatisticsParams, snapshotContext: SnapshotContext): StatisticsResult {
+  private getTop (params: StatisticsParams, metricContext: MetricContext): StatisticsResult {
     const messageLines: string[] = []
     const metricType: MetricType = params.metricTypes[0]
     const metricInfo = metricByType[metricType]
     const metricFormat = metricFormatByType[metricInfo.formatType || 'decimal']
-    const { topicData, topicConfig } = snapshotContext.metricContext
+    const { topicConfig, topicData } = metricContext
 
     params.locationQueries.find((locationQuery) => {
-      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      const location = this.findLocation(locationQuery.toLowerCase(), metricContext)
       if (!location) {
         return false
       }
@@ -168,11 +167,13 @@ export class ChatService {
         },
       })
 
+      const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+      const currentDateIndex = topicData.dates.length - 1
+
       const topRecords: TopRecord[] = baseRecords.map(
         (baseRecord: BaseRecord): TopRecord => {
           const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
-          const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-          const value = getSnapshot(baseRecord)
+          const value = calculateMetric(baseRecord, currentDateIndex)
           return { baseRecord, location, value }
         },
       )
@@ -184,7 +185,7 @@ export class ChatService {
       )
       const inLocation: string = location.code === topicData.rootLocation.code ? ' ' : ` in ${location.name} `
       messageLines.push(
-        `Top ${breakdownLocationType.name} of ${metricInfo.name}${inLocation}(*${snapshotContext.currentDate}*)`,
+        `Top ${breakdownLocationType.name} of ${metricInfo.name}${inLocation}(*${topicData.dates[currentDateIndex]}*)`,
         '',
         ...topRecords.slice(0, 10).map((topRecord, index) => {
           return `${index + 1}. ${topRecord.location.name} *${metricFormat.apply(topRecord.value)}*`
@@ -197,18 +198,18 @@ export class ChatService {
     return { message: messageLines.join('\n') }
   }
 
-  private getSummary (params: StatisticsParams, snapshotContext: SnapshotContext): StatisticsResult {
+  private getSummary (params: StatisticsParams, metricContext: MetricContext): StatisticsResult {
     const messageLines: string[] = []
 
     params.locationQueries.forEach((locationQuery, locationQueryIndex) => {
       if (locationQueryIndex > 0) {
         messageLines.push('---', '')
       }
-      const location = this.findLocation(locationQuery.toLowerCase(), snapshotContext)
+      const location = this.findLocation(locationQuery.toLowerCase(), metricContext)
       if (!location) {
         messageLines.push(`${locationQuery}: cannot find this location`)
       } else {
-        messageLines.push(...this.getSummaryForLocation(location, snapshotContext, params))
+        messageLines.push(...this.getSummaryForLocation(location, metricContext, params))
       }
       messageLines.push('')
     })
@@ -216,8 +217,8 @@ export class ChatService {
     return { message: messageLines.join('\n') }
   }
 
-  private findLocation (locationQuery: string, snapshotContext: SnapshotContext): Location | undefined {
-    const { topicData } = snapshotContext.metricContext
+  private findLocation (locationQuery: string, metricContext: MetricContext): Location | undefined {
+    const { topicData } = metricContext
 
     if (stringSimilarity.compareTwoStrings(locationQuery, topicData.rootLocation.name.toLowerCase()) > 0.8) {
       return topicData.rootLocation
@@ -242,12 +243,9 @@ export class ChatService {
     return undefined
   }
 
-  private getSummaryForLocation (
-    location: Location,
-    snapshotContext: SnapshotContext,
-    params: StatisticsParams,
-  ): string[] {
-    const baseRecords = baseCalculator.getBaseRecords(snapshotContext.metricContext.topicData, {
+  private getSummaryForLocation (location: Location, metricContext: MetricContext, params: StatisticsParams): string[] {
+    const { topicData } = metricContext
+    const baseRecords = baseCalculator.getBaseRecords(topicData, {
       filter: {
         locationTypeCode: location.type,
         locationCodes: [location.code],
@@ -256,13 +254,14 @@ export class ChatService {
         locationTypeCode: location.type,
       },
     })
+    const currentDateIndex = topicData.dates.length - 1
     const messageLinesForLocation = [
-      `Summary of ${location.name} (*${snapshotContext.currentDate}*)`,
+      `Summary of ${location.name} (*${topicData.dates[currentDateIndex]}*)`,
       '',
       ...params.metricTypes.map((metricType) => {
         const metric = metricByType[metricType]
-        const getSnapshot = metricCalculatorByType[metricType].getSnapshot(snapshotContext)
-        const value = getSnapshot(baseRecords[0])
+        const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+        const value = calculateMetric(baseRecords[0], currentDateIndex)
         const metricFormat = metricFormatByType[metric.formatType || 'decimal']
         return `${metric.name}: *${metricFormat.apply(value)}*`
       }),

@@ -1,37 +1,28 @@
 import { MetricType } from '@covidtop/shared/lib/metric'
 import { mapValues } from '@covidtop/shared/lib/utils'
 
-import { getTotalActiveValueSnapshot } from './active-metric'
-import { getNewConfirmedValueSnapshot, getTotalConfirmedValueSnapshot } from './confirmed-metric'
-import { getNewDeathsValueSnapshot, getTotalDeathsValueSnapshot } from './deaths-metric'
-import { getFatalityRateValueSnapshot } from './fatality-rate-metric'
+import { activeMetricBuilder } from './active-metric'
+import { confirmedMetricBuilder } from './confirmed-metric'
+import { deathsMetricBuilder } from './deaths-metric'
+import { fatalityRateMetricBuilder } from './fatality-rate-metric'
 import { MetricCalculator } from './metric-calculator'
-import { getNewRecoveredValueSnapshot, getTotalRecoveredValueSnapshot } from './recovered-metric'
+import { recoveredMetricBuilder } from './recovered-metric'
 
 const partialMetricCalculatorByType: Readonly<Record<MetricType, Omit<MetricCalculator, 'metricType'>>> = {
-  'new-confirmed-value': {
-    getSnapshot: getNewConfirmedValueSnapshot,
+  confirmed: {
+    metricBuilder: confirmedMetricBuilder,
   },
-  'total-confirmed-value': {
-    getSnapshot: getTotalConfirmedValueSnapshot,
+  deaths: {
+    metricBuilder: deathsMetricBuilder,
   },
-  'new-deaths-value': {
-    getSnapshot: getNewDeathsValueSnapshot,
+  recovered: {
+    metricBuilder: recoveredMetricBuilder,
   },
-  'total-deaths-value': {
-    getSnapshot: getTotalDeathsValueSnapshot,
+  active: {
+    metricBuilder: activeMetricBuilder,
   },
-  'new-recovered-value': {
-    getSnapshot: getNewRecoveredValueSnapshot,
-  },
-  'total-recovered-value': {
-    getSnapshot: getTotalRecoveredValueSnapshot,
-  },
-  'total-active-value': {
-    getSnapshot: getTotalActiveValueSnapshot,
-  },
-  'fatality-rate-value': {
-    getSnapshot: getFatalityRateValueSnapshot,
+  'fatality-rate': {
+    metricBuilder: fatalityRateMetricBuilder,
   },
 }
 
