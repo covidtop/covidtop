@@ -30,6 +30,7 @@ export const nswConfig: TopicConfig = {
       nswLocationTypes.localGovernmentArea,
       nswLocationTypes.postcode,
     ],
+    unknownCodes: ['', '0'],
   },
   measureConfig: {
     measureTypes: ['confirmed'],
