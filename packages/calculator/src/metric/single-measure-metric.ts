@@ -2,12 +2,12 @@ import { MeasureType } from '@covidtop/shared/lib/measure'
 import { sumBy } from '@covidtop/shared/lib/utils'
 
 import { BaseRecord } from '../base'
-import { MetricBuilder } from './metric-calculator'
+import { GetMetricValue, GetMetricValueWithContext } from './metric-calculator'
 import { MetricContext } from './metric-context'
 import { getTimePeriodResolver } from './time-period-resolver'
 
-export const getSingleMeasureMetricFactory = (measureType: MeasureType): MetricBuilder => {
-  return (metricContext: MetricContext) => {
+export const getMetricValueBySingleMeasure = (measureType: MeasureType): GetMetricValueWithContext => {
+  return (metricContext: MetricContext): GetMetricValue => {
     const { topicConfig, topicData } = metricContext
     const measureIndex = topicConfig.measureConfig.measureTypes.indexOf(measureType)
     const timePeriodResolver = getTimePeriodResolver(metricContext)

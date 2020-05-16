@@ -82,13 +82,13 @@ export class ChatService {
         },
       })
 
-      const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+      const getMetricValue = metricCalculatorByType[metricType].getValue(metricContext)
       const currentDateIndex = topicData.dates.length - 1
 
       const topRecords: TopRecord[] = baseRecords.map(
         (baseRecord: BaseRecord): TopRecord => {
           const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
-          const value = calculateMetric(baseRecord, currentDateIndex)
+          const value = getMetricValue(baseRecord, currentDateIndex)
           return { baseRecord, location, value }
         },
       )
@@ -105,7 +105,7 @@ export class ChatService {
       }),
     )
 
-    const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+    const getMetricValue = metricCalculatorByType[metricType].getValue(metricContext)
 
     const chartConfig: ChartConfig = {
       type: 'line',
@@ -119,7 +119,7 @@ export class ChatService {
             backgroundColor: color,
             borderColor: color,
             data: topicData.dates.map((date, dateIndex) => {
-              return calculateMetric(topRecord.baseRecord, dateIndex)
+              return getMetricValue(topRecord.baseRecord, dateIndex)
             }),
           }
         }),
@@ -167,13 +167,13 @@ export class ChatService {
         },
       })
 
-      const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
+      const getMetricValue = metricCalculatorByType[metricType].getValue(metricContext)
       const currentDateIndex = topicData.dates.length - 1
 
       const topRecords: TopRecord[] = baseRecords.map(
         (baseRecord: BaseRecord): TopRecord => {
           const location = breakdownLocationGroup.locationByCode[baseRecord.locationCode]
-          const value = calculateMetric(baseRecord, currentDateIndex)
+          const value = getMetricValue(baseRecord, currentDateIndex)
           return { baseRecord, location, value }
         },
       )
@@ -260,8 +260,8 @@ export class ChatService {
       '',
       ...params.metricTypes.map((metricType) => {
         const metric = metricByType[metricType]
-        const calculateMetric = metricCalculatorByType[metricType].metricBuilder(metricContext)
-        const value = calculateMetric(baseRecords[0], currentDateIndex)
+        const getMetricValue = metricCalculatorByType[metricType].getValue(metricContext)
+        const value = getMetricValue(baseRecords[0], currentDateIndex)
         const metricFormat = metricFormatByType[metric.formatType || 'decimal']
         return `${metric.name}: *${metricFormat.apply(value)}*`
       }),

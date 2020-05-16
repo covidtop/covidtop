@@ -1,35 +1,22 @@
 import { MetricType } from '@covidtop/shared/lib/metric'
-import { mapValues } from '@covidtop/shared/lib/utils'
+import { keyBy } from '@covidtop/shared/lib/utils'
 
-import { activeMetricBuilder } from './active-metric'
-import { confirmedMetricBuilder } from './confirmed-metric'
-import { deathsMetricBuilder } from './deaths-metric'
-import { fatalityRateMetricBuilder } from './fatality-rate-metric'
+import { activeCalculator } from './active-calculator'
+import { confirmedCalculator } from './confirmed-calculator'
+import { deathsCalculator } from './deaths-calculator'
+import { fatalityRateCalculator } from './fatality-rate-calculator'
 import { MetricCalculator } from './metric-calculator'
-import { recoveredMetricBuilder } from './recovered-metric'
+import { recoveredCalculator } from './recovered-calculator'
 
-const partialMetricCalculatorByType: Readonly<Record<MetricType, Omit<MetricCalculator, 'metricType'>>> = {
-  confirmed: {
-    metricBuilder: confirmedMetricBuilder,
-  },
-  deaths: {
-    metricBuilder: deathsMetricBuilder,
-  },
-  recovered: {
-    metricBuilder: recoveredMetricBuilder,
-  },
-  active: {
-    metricBuilder: activeMetricBuilder,
-  },
-  'fatality-rate': {
-    metricBuilder: fatalityRateMetricBuilder,
-  },
-}
+const metricCalculators: MetricCalculator[] = [
+  confirmedCalculator,
+  deathsCalculator,
+  recoveredCalculator,
+  activeCalculator,
+  fatalityRateCalculator,
+]
 
-export const metricCalculatorByType: Readonly<Record<MetricType, MetricCalculator>> = mapValues(
-  partialMetricCalculatorByType,
-  (partialMetricCalculator, metricType) => ({
-    metricType,
-    ...partialMetricCalculator,
-  }),
+export const metricCalculatorByType: Readonly<Record<MetricType, MetricCalculator>> = keyBy(
+  metricCalculators,
+  ({ metricType }) => metricType,
 )
