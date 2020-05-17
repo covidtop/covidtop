@@ -11,9 +11,13 @@
   },
   "dependencies": {
     "@covidtop/shared": "0.0.0",
+    "@esri/arcgis-rest-request":"2.12.1",
+    "@esri/arcgis-rest-feature-layer":"2.12.1",
     "axios": "0.19.2",
     "dashify": "2.0.0",
     "fs-extra": "9.0.0",
+    "isomorphic-fetch": "2.2.1",
+    "isomorphic-form-data": "2.0.0",
     "neat-csv": "5.2.0",
     "node-object-hash": "2.0.0"
   },

@@ -2,7 +2,13 @@ import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
 
 import { codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
-import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
+import {
+  JhuMeasureFile,
+  mergeJhuMeasureFiles,
+  parseJhuArcgisCountryRegion,
+  parseJhuArcgisProvinceState,
+  parseJhuMeasureFile,
+} from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { globalConfig, globalLocationTypes } from './global-config'
 
@@ -38,6 +44,8 @@ const parseRecoveredFile = (): Promise<JhuMeasureFile> => {
 }
 
 export const loadGlobalTopicData: LoadTopicData = async (): Promise<TopicData> => {
+  const arcgisCountryRegion = await parseJhuArcgisCountryRegion()
+  const arcgisProvinceState = await parseJhuArcgisProvinceState()
   const confirmedFile = await parseConfirmedFile()
   const deathsFile = await parseDeathsFile()
   const recoveredFile = await parseRecoveredFile()
