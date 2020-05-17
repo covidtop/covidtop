@@ -1,58 +1,70 @@
-import { IFeature, IQueryFeaturesResponse, queryFeatures } from '@esri/arcgis-rest-feature-layer'
-require('isomorphic-fetch')
-require('isomorphic-form-data')
+import 'isomorphic-fetch'
+import 'isomorphic-form-data'
 
-const baseUrl = 'https://services9.arcgis.com'
+import { IFeature, queryFeatures } from '@esri/arcgis-rest-feature-layer'
 
-export interface ArcgisQuery {
-  readonly outFields: string
-  readonly where?: string
-  readonly limit?: number
-  offset?: number
+export type ArcgisFeature = IFeature
+
+interface GetNextFeaturesOptions {
+  readonly url: string
+  readonly where: string
+  readonly limit: number
+  readonly offset: number
 }
 
-const fetchContent = async (
-  url: string,
-  { outFields, where, offset, limit }: ArcgisQuery,
-): Promise<IQueryFeaturesResponse> => {
-  const result = (await queryFeatures({
+const getNextFeatures = async ({ url, where, limit, offset }: GetNextFeaturesOptions): Promise<ArcgisFeature[]> => {
+  const response = await queryFeatures({
     url,
-    where: where || '1=1',
+    where,
     params: {
       f: 'json',
       returnGeometry: false,
       spatialRel: 'esriSpatialRelIntersects',
-      outFields,
-      resultOffset: offset,
+      outFields: '*',
       resultRecordCount: limit,
+      resultOffset: offset,
     },
-  })) as IQueryFeaturesResponse
-  return result
+  })
+
+  if ('features' in response) {
+    return response.features
+  }
+
+  return []
 }
 
-const getContent = async (
-  site: string,
+const getFeatures = async (
+  baseUrl: string,
   folder: string,
-  serviceName: string,
   serviceType: string,
-  query: ArcgisQuery,
-): Promise<IFeature[]> => {
-  const url = `${baseUrl}/${site}/arcgis/rest/services/${folder}/${serviceName}/${serviceType}`
-  const results: IFeature[] = []
-  const actualQuery: ArcgisQuery = {
-    offset: 0,
+  condition = '1=1',
+): Promise<ArcgisFeature[]> => {
+  const url = `${baseUrl}/arcgis/rest/services/${folder}/FeatureServer/${serviceType}`
+  let options: GetNextFeaturesOptions = {
+    url,
+    where: condition,
     limit: 1000,
-    ...query,
+    offset: 0,
   }
+
+  const features: ArcgisFeature[] = []
   while (true) {
-    const response = await fetchContent(url, actualQuery)
-    if (response.features && response.features.length === 0) break
-    results.push(...response.features)
-    actualQuery.offset = (actualQuery.offset || 0) + (actualQuery.limit || 1000)
+    const nextFeatures = await getNextFeatures(options)
+    if (!nextFeatures || !nextFeatures.length) {
+      break
+    }
+
+    features.push(...nextFeatures)
+
+    options = {
+      ...options,
+      offset: options.offset + options.limit,
+    }
   }
-  return results
+
+  return features
 }
 
 export const arcgisApi = {
-  getContent,
+  getFeatures,
 }

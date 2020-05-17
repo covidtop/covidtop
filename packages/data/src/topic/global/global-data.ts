@@ -1,9 +1,14 @@
 import { Location } from '@covidtop/shared/lib/location'
 import { TopicData } from '@covidtop/shared/lib/topic'
-import { IFeature } from '@esri/arcgis-rest-feature-layer'
 
-import { arcgisApi, codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
-import { JhuMeasureFile, mergeJhuMeasureFiles, parseJhuMeasureFile } from '../../source/jhu'
+import { codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
+import {
+  JhuMeasureFile,
+  mergeJhuMeasureFiles,
+  parseJhuArcgisCountryRegion,
+  parseJhuArcgisProvinceState,
+  parseJhuMeasureFile,
+} from '../../source/jhu'
 import { LoadTopicData } from '../common'
 import { globalConfig, globalLocationTypes } from './global-config'
 
@@ -26,40 +31,24 @@ const getGlobalLocations = (row: CsvRow): Location[] => {
   return locationDataHelper.normaliseLocations([countryRegionLocation, provinceStateLocation], globalConfig)
 }
 
-const parseConfirmedFile = (arcgisData: IFeature[][]): Promise<JhuMeasureFile> => {
-  return parseJhuMeasureFile('confirmed', 'time_series_covid19_confirmed_global.csv', getGlobalLocations, arcgisData)
+const parseConfirmedFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('confirmed', 'time_series_covid19_confirmed_global.csv', getGlobalLocations)
 }
 
-const parseDeathsFile = (arcgisData: IFeature[][]): Promise<JhuMeasureFile> => {
-  return parseJhuMeasureFile('deaths', 'time_series_covid19_deaths_global.csv', getGlobalLocations, arcgisData)
+const parseDeathsFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('deaths', 'time_series_covid19_deaths_global.csv', getGlobalLocations)
 }
 
-const parseRecoveredFile = (arcgisData: IFeature[][]): Promise<JhuMeasureFile> => {
-  return parseJhuMeasureFile('recovered', 'time_series_covid19_recovered_global.csv', getGlobalLocations, arcgisData)
+const parseRecoveredFile = (): Promise<JhuMeasureFile> => {
+  return parseJhuMeasureFile('recovered', 'time_series_covid19_recovered_global.csv', getGlobalLocations)
 }
 
 export const loadGlobalTopicData: LoadTopicData = async (): Promise<TopicData> => {
-  const arcgisCountryRegion = await arcgisApi.getContent(
-    'N9p5hsImWXAccRNI',
-    'Nc2JKvYFoAEOFCG5JSI6',
-    'FeatureServer',
-    '2',
-    {
-      outFields: 'Country_Region, Confirmed as confirmed, Deaths as deaths, Recovered as recovered',
-    },
-  )
-  const arcgisProvinceState = await arcgisApi.getContent(
-    'N9p5hsImWXAccRNI',
-    'Nc2JKvYFoAEOFCG5JSI6',
-    'FeatureServer',
-    '3',
-    {
-      outFields: 'Country_Region, Province_State, Confirmed as confirmed, Deaths as deaths, Recovered as recovered',
-    },
-  )
-  const confirmedFile = await parseConfirmedFile([arcgisCountryRegion, arcgisProvinceState])
-  const deathsFile = await parseDeathsFile([arcgisCountryRegion, arcgisProvinceState])
-  const recoveredFile = await parseRecoveredFile([arcgisCountryRegion, arcgisProvinceState])
+  const arcgisCountryRegion = await parseJhuArcgisCountryRegion()
+  const arcgisProvinceState = await parseJhuArcgisProvinceState()
+  const confirmedFile = await parseConfirmedFile()
+  const deathsFile = await parseDeathsFile()
+  const recoveredFile = await parseRecoveredFile()
 
   const { dates, locationGroups, topicRecords } = mergeJhuMeasureFiles(
     [confirmedFile, deathsFile, recoveredFile],
