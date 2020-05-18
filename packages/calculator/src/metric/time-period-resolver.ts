@@ -1,9 +1,11 @@
-import { LastNthDayTimePeriod } from '@covidtop/shared/lib/params'
+import { LastNthDayTimePeriod, SinceNthCaseTimePeriod } from '@covidtop/shared/lib/params'
 
+import { BaseRecord } from '../base'
+import { confirmedCalculator } from './confirmed-calculator'
 import { MetricContext } from './metric-context'
 
 export interface TimePeriodResolver {
-  readonly getStartDateIndex: (endDateIndex: number) => number
+  readonly getStartDateIndex: (endDateIndex: number, baseRecord: BaseRecord) => number | undefined
 }
 
 const getAllTimePeriodResolver = (): TimePeriodResolver => {
@@ -18,6 +20,30 @@ const getLastNthDayTimePeriodResolver = ({ lastNthDay }: LastNthDayTimePeriod): 
   }
 }
 
+const getSinceNthCasePeriodResolver = ({
+  metricParams: { timePeriod },
+  topicConfig,
+  topicData,
+}: MetricContext): TimePeriodResolver => {
+  return {
+    getStartDateIndex: (endDateIndex: number, baseRecord: BaseRecord) => {
+      const { sinceNthCase } = timePeriod as SinceNthCaseTimePeriod
+      const getConfirmedValue = confirmedCalculator.getValue({
+        topicConfig,
+        topicData,
+        metricParams: { timePeriod: { type: 'all' } },
+      })
+      let currentCase = 0
+      for (let dateIndex = 0; dateIndex < endDateIndex; dateIndex++) {
+        currentCase += getConfirmedValue(baseRecord, dateIndex) || 0
+        if (currentCase >= sinceNthCase) {
+          return dateIndex + 1
+        }
+      }
+    },
+  }
+}
+
 export const getTimePeriodResolver = (metricContext: MetricContext): TimePeriodResolver => {
   const {
     metricParams: { timePeriod },
@@ -29,7 +55,7 @@ export const getTimePeriodResolver = (metricContext: MetricContext): TimePeriodR
     return getLastNthDayTimePeriodResolver(timePeriod)
   }
   if (timePeriod.type === 'since-nth-case') {
-    // TODO
+    return getSinceNthCasePeriodResolver(metricContext)
   }
   throw new Error(`Unknown time period type: ${timePeriod.type}`)
 }
