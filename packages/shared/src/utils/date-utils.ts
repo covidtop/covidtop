@@ -1,4 +1,4 @@
-import { differenceInMinutes, eachDayOfInterval, format, parse as parseDate, sub } from 'date-fns'
+import { differenceInMinutes, eachDayOfInterval, format, formatDistance, parse as parseDate, sub } from 'date-fns'
 
 export { parseDate }
 
@@ -20,4 +20,8 @@ export const getMinutesBetween = (fromDate: Date, toDate: Date): number => {
 
 export const subtractDate = (dateText: string, days: number): string => {
   return toDateText(sub(new Date(dateText), { days }))
+}
+
+export const getDistanceBetween = (fromDate: Date, toDate: Date): string => {
+  return formatDistance(fromDate, toDate, { addSuffix: true })
 }

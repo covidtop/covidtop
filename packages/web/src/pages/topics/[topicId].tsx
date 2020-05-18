@@ -1,5 +1,6 @@
 import { TopicSummary } from '@covidtop/shared/lib/topic'
-import { Container, Typography } from '@material-ui/core'
+import { getDistanceBetween } from '@covidtop/shared/lib/utils'
+import { Container, NoSsr, Typography } from '@material-ui/core'
 import { GetServerSideProps, NextPage } from 'next'
 
 import { PageLayout, TopSpace } from '../../components/common'
@@ -10,6 +11,13 @@ interface TopicPageProps {
   readonly topicSummary: TopicSummary
 }
 
+const getLastUpdated = (topicSummary: TopicSummary) => {
+  const now = new Date()
+  const result = `Last updated: ${getDistanceBetween(new Date(topicSummary.topicInfo.lastUpdated), now)} (checked 
+                  ${getDistanceBetween(new Date(topicSummary.topicInfo.lastChecked), now)})`
+  return result
+}
+
 const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
   return (
     <PageLayout headTitle={topicSummary.topicConfig.name}>
@@ -18,6 +26,11 @@ const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
         <Typography variant='h4' gutterBottom>
           {topicSummary.topicConfig.name}
         </Typography>
+        <NoSsr>
+          <Typography variant='h4' gutterBottom>
+            {getLastUpdated(topicSummary)}
+          </Typography>
+        </NoSsr>
       </Container>
     </PageLayout>
   )
