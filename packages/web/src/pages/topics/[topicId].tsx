@@ -1,7 +1,8 @@
-import { TopicSummary } from '@covidtop/shared/lib/topic'
-import { getDistanceBetween } from '@covidtop/shared/lib/utils'
+import { TopicInfo, TopicSummary } from '@covidtop/shared/lib/topic'
+import { getDistanceToNow } from '@covidtop/shared/lib/utils'
 import { Container, NoSsr, Typography } from '@material-ui/core'
 import { GetServerSideProps, NextPage } from 'next'
+import React, { FunctionComponent } from 'react'
 
 import { PageLayout, TopSpace } from '../../components/common'
 import { apiClient, queryHelper } from '../../utils'
@@ -11,11 +12,18 @@ interface TopicPageProps {
   readonly topicSummary: TopicSummary
 }
 
-const getLastUpdated = (topicSummary: TopicSummary) => {
-  const now = new Date()
-  const result = `Last updated: ${getDistanceBetween(new Date(topicSummary.topicInfo.lastUpdated), now)} (checked 
-                  ${getDistanceBetween(new Date(topicSummary.topicInfo.lastChecked), now)})`
-  return result
+interface TopicLastUpdatedProps {
+  readonly topicInfo: TopicInfo
+}
+
+const TopicLastUpdated: FunctionComponent<TopicLastUpdatedProps> = ({ topicInfo }) => {
+  return (
+    <>
+      {`Last updated: ${getDistanceToNow(topicInfo.lastUpdated)}`}{' '}
+      {topicInfo.lastUpdated !== topicInfo.lastChecked &&
+        `(checked ${getDistanceToNow(topicInfo.lastChecked)})`}
+    </>
+  )
 }
 
 const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
@@ -23,13 +31,11 @@ const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
     <PageLayout headTitle={topicSummary.topicConfig.name}>
       <TopSpace />
       <Container>
-        <Typography variant='h4' gutterBottom>
+        <Typography variant="h4" gutterBottom>
           {topicSummary.topicConfig.name}
         </Typography>
         <NoSsr>
-          <Typography variant='h4' gutterBottom>
-            {getLastUpdated(topicSummary)}
-          </Typography>
+          <TopicLastUpdated topicInfo={topicSummary.topicInfo} />
         </NoSsr>
       </Container>
     </PageLayout>

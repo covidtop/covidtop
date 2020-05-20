@@ -22,6 +22,6 @@ export const subtractDate = (dateText: string, days: number): string => {
   return toDateText(sub(new Date(dateText), { days }))
 }
 
-export const getDistanceBetween = (fromDate: Date, toDate: Date): string => {
-  return formatDistance(fromDate, toDate, { addSuffix: true })
+export const getDistanceToNow = (dateText: string): string => {
+  return formatDistance(new Date(dateText), new Date(), { addSuffix: true })
 }
