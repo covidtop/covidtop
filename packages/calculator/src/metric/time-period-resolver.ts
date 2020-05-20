@@ -20,26 +20,25 @@ const getLastNthDayTimePeriodResolver = ({ lastNthDay }: LastNthDayTimePeriod): 
   }
 }
 
-const getSinceNthCasePeriodResolver = ({
-  metricParams: { timePeriod },
-  topicConfig,
-  topicData,
-}: MetricContext): TimePeriodResolver => {
+const getSinceNthCasePeriodResolver = (
+  { sinceNthCase }: SinceNthCaseTimePeriod,
+  { metricParams, topicConfig, topicData }: MetricContext,
+): TimePeriodResolver => {
   return {
     getStartDateIndex: (endDateIndex: number, baseRecord: BaseRecord) => {
-      const { sinceNthCase } = timePeriod as SinceNthCaseTimePeriod
       const getConfirmedValue = confirmedCalculator.getValue({
         topicConfig,
         topicData,
-        metricParams: { timePeriod: { type: 'all' } },
+        metricParams: { ...metricParams, timePeriod: { type: 'all' } },
       })
       let currentCase = 0
-      for (let dateIndex = 0; dateIndex < endDateIndex; dateIndex++) {
+      for (let dateIndex = 0; dateIndex < endDateIndex; ++dateIndex) {
         currentCase += getConfirmedValue(baseRecord, dateIndex) || 0
         if (currentCase >= sinceNthCase) {
           return dateIndex + 1
         }
       }
+      return undefined
     },
   }
 }
@@ -55,7 +54,7 @@ export const getTimePeriodResolver = (metricContext: MetricContext): TimePeriodR
     return getLastNthDayTimePeriodResolver(timePeriod)
   }
   if (timePeriod.type === 'since-nth-case') {
-    return getSinceNthCasePeriodResolver(metricContext)
+    return getSinceNthCasePeriodResolver(timePeriod, metricContext)
   }
   throw new Error(`Unknown time period type: ${timePeriod.type}`)
 }
