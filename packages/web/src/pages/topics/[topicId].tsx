@@ -1,6 +1,8 @@
-import { TopicSummary } from '@covidtop/shared/lib/topic'
-import { Container, Typography } from '@material-ui/core'
+import { TopicInfo, TopicSummary } from '@covidtop/shared/lib/topic'
+import { getDistanceToNow } from '@covidtop/shared/lib/utils'
+import { Container, NoSsr, Typography } from '@material-ui/core'
 import { GetServerSideProps, NextPage } from 'next'
+import React, { FunctionComponent } from 'react'
 
 import { PageLayout, TopSpace } from '../../components/common'
 import { apiClient, queryHelper } from '../../utils'
@@ -8,6 +10,19 @@ import { apiClient, queryHelper } from '../../utils'
 interface TopicPageProps {
   readonly topicId: string
   readonly topicSummary: TopicSummary
+}
+
+interface TopicLastUpdatedProps {
+  readonly topicInfo: TopicInfo
+}
+
+const TopicLastUpdated: FunctionComponent<TopicLastUpdatedProps> = ({ topicInfo }) => {
+  return (
+    <>
+      {`Last updated: ${getDistanceToNow(topicInfo.lastUpdated)}`}{' '}
+      {topicInfo.lastUpdated !== topicInfo.lastChecked && `(checked ${getDistanceToNow(topicInfo.lastChecked)})`}
+    </>
+  )
 }
 
 const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
@@ -18,6 +33,9 @@ const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
         <Typography variant='h4' gutterBottom>
           {topicSummary.topicConfig.name}
         </Typography>
+        <NoSsr>
+          <TopicLastUpdated topicInfo={topicSummary.topicInfo} />
+        </NoSsr>
       </Container>
     </PageLayout>
   )
