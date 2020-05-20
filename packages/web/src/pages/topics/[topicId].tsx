@@ -20,8 +20,7 @@ const TopicLastUpdated: FunctionComponent<TopicLastUpdatedProps> = ({ topicInfo 
   return (
     <>
       {`Last updated: ${getDistanceToNow(topicInfo.lastUpdated)}`}{' '}
-      {topicInfo.lastUpdated !== topicInfo.lastChecked &&
-        `(checked ${getDistanceToNow(topicInfo.lastChecked)})`}
+      {topicInfo.lastUpdated !== topicInfo.lastChecked && `(checked ${getDistanceToNow(topicInfo.lastChecked)})`}
     </>
   )
 }
@@ -31,7 +30,7 @@ const TopicPage: NextPage<TopicPageProps> = ({ topicSummary }) => {
     <PageLayout headTitle={topicSummary.topicConfig.name}>
       <TopSpace />
       <Container>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant='h4' gutterBottom>
           {topicSummary.topicConfig.name}
         </Typography>
         <NoSsr>
