@@ -1,8 +1,9 @@
+import { LocationType } from '@covidtop/shared/lib/location'
 import { TopicConfig } from '@covidtop/shared/lib/topic'
 
 import { globalConfig, globalLocationTypes } from '../global'
 
-export const nswLocationTypes = {
+export const nswLocationTypes: Readonly<Record<string, LocationType>> = {
   localHealthDistrict: { code: 'LHD', name: 'Local Health District' },
   localGovernmentArea: { code: 'LGA', name: 'Local Government Area' },
   postcode: { code: 'POSTCODE', name: 'Postcode' },
@@ -25,14 +26,31 @@ export const nswConfig: TopicConfig = {
       code: 'nsw',
       name: 'New South Wales',
     },
-    locationTypes: [
-      nswLocationTypes.localHealthDistrict,
-      nswLocationTypes.localGovernmentArea,
-      nswLocationTypes.postcode,
+    locationGroups: [
+      {
+        locationType: nswLocationTypes.localHealthDistrict,
+        unknownCodes: [''],
+      },
+      {
+        locationType: nswLocationTypes.localGovernmentArea,
+        unknownCodes: [''],
+      },
+      {
+        locationType: nswLocationTypes.postcode,
+        unknownCodes: [''],
+      },
     ],
-    unknownCodes: ['', '0'],
   },
   measureConfig: {
-    measureTypes: ['confirmed'],
+    measureGroups: [
+      {
+        measureTypes: ['confirmed'],
+        locationTypeCodes: [
+          nswLocationTypes.localHealthDistrict.code,
+          nswLocationTypes.localGovernmentArea.code,
+          nswLocationTypes.postcode.code,
+        ],
+      },
+    ],
   },
 }

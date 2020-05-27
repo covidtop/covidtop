@@ -1,8 +1,10 @@
 import { Location } from '@covidtop/shared/lib/location'
-import { TopicData } from '@covidtop/shared/lib/topic'
+import { LocationGroup, TopicData } from '@covidtop/shared/lib/topic'
+import { flatMap } from '@covidtop/shared/lib/utils'
 
 import { codeGenerator, CsvRow, locationDataHelper } from '../../source/common'
 import {
+  getAllDates,
   JhuMeasureFile,
   mergeJhuMeasureFiles,
   parseJhuArcgisCountryRegion,
@@ -50,16 +52,24 @@ export const loadGlobalTopicData: LoadTopicData = async (): Promise<TopicData> =
   const deathsFile = await parseDeathsFile()
   const recoveredFile = await parseRecoveredFile()
 
-  const { dates, locationGroups, topicRecords } = mergeJhuMeasureFiles(
-    [confirmedFile, deathsFile, recoveredFile],
+  const locationGroups: LocationGroup[] = locationDataHelper.getLocationGroups(
+    flatMap([confirmedFile, deathsFile, recoveredFile], ({ records }) => records),
     globalConfig,
   )
+
+  const dates = getAllDates([confirmedFile, deathsFile, recoveredFile])
 
   return {
     rootLocation: globalConfig.locationConfig.rootLocation,
     locationGroups,
-    measureTypes: globalConfig.measureConfig.measureTypes,
     dates,
-    topicRecords,
+    measureGroups: [
+      mergeJhuMeasureFiles(
+        [confirmedFile, deathsFile],
+        [globalLocationTypes.countryRegion.code, globalLocationTypes.stateProvince.code],
+        dates,
+      ),
+      mergeJhuMeasureFiles([recoveredFile], [globalLocationTypes.countryRegion.code], dates),
+    ],
   }
 }

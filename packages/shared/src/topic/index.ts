@@ -1,7 +1,16 @@
+export * from './location-group'
+export * from './location-group-summary'
+export * from './location-group-config'
+export * from './location-config'
+
+export * from './measure-group'
+export * from './measure-group-record'
+export * from './measure-group-config'
+export * from './measure-config'
+
 export * from './topic-id'
 export * from './topic-link'
 export * from './topic-config'
-export * from './topic-record'
 export * from './topic-data'
 export * from './topic-info'
 export * from './topic-holder'

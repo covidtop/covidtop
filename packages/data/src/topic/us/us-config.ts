@@ -1,8 +1,9 @@
+import { LocationType } from '@covidtop/shared/lib/location'
 import { TopicConfig } from '@covidtop/shared/lib/topic'
 
 import { globalConfig, globalLocationTypes } from '../global'
 
-export const usLocationTypes = {
+export const usLocationTypes: Readonly<Record<string, LocationType>> = {
   state: { code: 'STATE', name: 'State' },
   county: { code: 'COUNTY', name: 'County' },
 }
@@ -24,9 +25,21 @@ export const usConfig: TopicConfig = {
       code: 'us',
       name: 'US',
     },
-    locationTypes: [usLocationTypes.state, usLocationTypes.county],
+    locationGroups: [
+      {
+        locationType: usLocationTypes.state,
+      },
+      {
+        locationType: usLocationTypes.county,
+      },
+    ],
   },
   measureConfig: {
-    measureTypes: ['confirmed', 'deaths'],
+    measureGroups: [
+      {
+        measureTypes: ['confirmed', 'deaths'],
+        locationTypeCodes: [usLocationTypes.state.code, usLocationTypes.county.code],
+      },
+    ],
   },
 }

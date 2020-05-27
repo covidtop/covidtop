@@ -38,13 +38,18 @@ export const loadNswTopicData: LoadTopicData = async (): Promise<TopicData> => {
     }
   })
 
-  const { locationGroups, dates, topicRecords } = caseDataHelper.processCaseRecords(caseRecords, nswConfig)
+  const { locationGroups, dates, measureGroupRecords } = caseDataHelper.processCaseRecords(caseRecords, nswConfig)
 
   return {
     rootLocation: nswConfig.locationConfig.rootLocation,
     locationGroups,
-    measureTypes: nswConfig.measureConfig.measureTypes,
     dates,
-    topicRecords,
+    measureGroups: [
+      {
+        measureTypes: ['confirmed'],
+        locationTypeCodes: locationGroups.map(({ locationType }) => locationType.code),
+        records: measureGroupRecords,
+      },
+    ],
   }
 }

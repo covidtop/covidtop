@@ -1,5 +1,5 @@
-import { Location, LocationGroup } from '@covidtop/shared/lib/location'
-import { TopicConfig, TopicRecord } from '@covidtop/shared/lib/topic'
+import { Location } from '@covidtop/shared/lib/location'
+import { LocationGroup, MeasureGroupRecord, TopicConfig } from '@covidtop/shared/lib/topic'
 import { fastSort, getDatesBetween, groupBy, mapValues } from '@covidtop/shared/lib/utils'
 
 import { locationDataHelper } from './location-data-helper'
@@ -9,11 +9,11 @@ export interface CaseRecord {
   readonly date: string
 }
 
-const getTopicRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig, dates: string[]): TopicRecord[] => {
-  const caseRecordsByLocationKey = groupBy(caseRecords, locationDataHelper.getLocationKey)
+const getMeasureGroupRecords = (caseRecords: CaseRecord[], dates: string[]): MeasureGroupRecord[] => {
+  const caseRecordsByLocationKey = groupBy(caseRecords, (caseRecord) => locationDataHelper.getLocationKey(caseRecord))
 
   return Object.values(caseRecordsByLocationKey).map(
-    (caseRecordsPerLocationKey): TopicRecord => {
+    (caseRecordsPerLocationKey): MeasureGroupRecord => {
       const caseCountByDate: Record<string, number> = mapValues(
         groupBy(caseRecordsPerLocationKey, ({ date }) => date),
         ({ length }) => length,
@@ -29,8 +29,8 @@ const getTopicRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig, da
 
 export interface CaseRecordProcessResult {
   readonly dates: string[]
-  readonly topicRecords: TopicRecord[]
   readonly locationGroups: LocationGroup[]
+  readonly measureGroupRecords: MeasureGroupRecord[]
 }
 
 const processCaseRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig): CaseRecordProcessResult => {
@@ -42,12 +42,12 @@ const processCaseRecords = (caseRecords: CaseRecord[], topicConfig: TopicConfig)
 
   const locationGroups = locationDataHelper.getLocationGroups(sortedCaseRecords, topicConfig)
 
-  const topicRecords: TopicRecord[] = getTopicRecords(sortedCaseRecords, topicConfig, dates)
+  const measureGroupRecords: MeasureGroupRecord[] = getMeasureGroupRecords(sortedCaseRecords, dates)
 
   return {
     locationGroups,
     dates,
-    topicRecords,
+    measureGroupRecords,
   }
 }
 

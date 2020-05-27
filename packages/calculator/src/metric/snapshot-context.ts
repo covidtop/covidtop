@@ -1,4 +1,4 @@
-import { BaseRecord } from '../base'
+import { BaseRecord, BaseData } from '../base'
 import { MetricContext } from './metric-context'
 
 export interface SnapshotContext {
@@ -6,4 +6,4 @@ export interface SnapshotContext {
   readonly currentDate: string
 }
 
-export type CalculateSnapshot = (context: SnapshotContext) => (baseRecord: BaseRecord) => number | undefined
+export type CalculateSnapshot = (baseData: BaseData, context: SnapshotContext) => (baseRecord: BaseRecord) => number | undefined

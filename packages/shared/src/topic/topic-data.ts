@@ -1,11 +1,10 @@
-import { Location, LocationGroup } from '../location'
-import { MeasureType } from '../measure'
-import { TopicRecord } from './topic-record'
+import { Location } from '../location'
+import { LocationGroup } from './location-group'
+import { MeasureGroup } from './measure-group'
 
 export interface TopicData {
   readonly rootLocation: Location
   readonly locationGroups: LocationGroup[]
-  readonly measureTypes: MeasureType[]
   readonly dates: string[]
-  readonly topicRecords: TopicRecord[]
+  readonly measureGroups: MeasureGroup[]
 }

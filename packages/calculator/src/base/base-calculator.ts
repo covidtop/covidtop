@@ -1,7 +1,8 @@
-import { TopicData, TopicRecord } from '@covidtop/shared/lib/topic'
+import { TopicData } from '@covidtop/shared/lib/topic'
 import { groupBy, sumBy } from '@covidtop/shared/lib/utils'
 
 import { BaseRecord } from './base-record'
+import { BaseData } from './base-data'
 
 export interface FilterOptions {
   readonly locationTypeCode: string
@@ -55,7 +56,7 @@ const aggregateMeasurePerTypeAndDate = (topicRecords: TopicRecord[], topicData: 
   })
 }
 
-const getBaseRecords = (topicData: TopicData, options: GetBaseRecordsOptions): BaseRecord[] => {
+const getBaseRecords = (topicData: TopicData, options: GetBaseRecordsOptions): BaseData => {
   const { filter, group } = options
 
   const topicRecordsByLocationCode = groupBy(

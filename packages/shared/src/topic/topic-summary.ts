@@ -1,4 +1,4 @@
-import { LocationGroupSummary } from '../location'
+import { LocationGroupSummary } from './location-group-summary'
 import { TopicConfig } from './topic-config'
 import { TopicInfo } from './topic-info'
 

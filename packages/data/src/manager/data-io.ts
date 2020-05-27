@@ -2,7 +2,7 @@ import { TopicConfig, TopicData, TopicInfo } from '@covidtop/shared/lib/topic'
 import fse from 'fs-extra'
 import path from 'path'
 
-const TOPIC_VERSION = 'v1.1'
+const TOPIC_VERSION = 'v1.2'
 
 const topicDataPath = path.join(__dirname, `../../../../data/${process.env.NODE_ENV}`)
 

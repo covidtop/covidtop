@@ -1,5 +1,4 @@
-import { Location } from './location'
-import { LocationType } from './location-type'
+import { Location, LocationType } from '../location'
 
 export interface LocationGroup {
   readonly locationType: LocationType
