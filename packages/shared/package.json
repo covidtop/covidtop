@@ -10,8 +10,8 @@
     "build": "dev build"
   },
   "dependencies": {
-    "d3-format": "1.4.4",
-    "date-fns": "2.13.0",
+    "d3-format": "1.4.5",
+    "date-fns": "2.15.0",
     "fast-sort": "2.2.0"
   },
   "devDependencies": {

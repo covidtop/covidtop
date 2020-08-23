@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@covidtop/shared": "0.0.0",
-    "axios": "0.19.2",
+    "axios": "0.20.0",
     "dashify": "2.0.0",
-    "fs-extra": "9.0.0",
+    "fs-extra": "9.0.1",
     "neat-csv": "5.2.0",
     "node-object-hash": "2.0.0"
   },
@@ -21,6 +21,6 @@
     "@covidtop/dev": "0.0.0",
     "@types/axios": "0.14.0",
     "@types/dashify": "1.0.0",
-    "@types/fs-extra": "8.1.0"
+    "@types/fs-extra": "8.1.1"
   }
 }
