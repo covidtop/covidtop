@@ -27,10 +27,10 @@
     "log-production": "docker-compose -p covidtop_production -f ./docker/production/docker-compose.yml logs -f -t --tail=100"
   },
   "engines": {
-    "node": "12.16.3"
+    "node": "12.18.3"
   },
   "devDependencies": {
-    "lerna": "3.20.2",
-    "wait-on": "5.0.0"
+    "lerna": "3.22.1",
+    "wait-on": "5.2.0"
   }
 }

@@ -25,23 +25,23 @@
     "@covidtop/calculator": "0.0.0",
     "@covidtop/data": "0.0.0",
     "@covidtop/shared": "0.0.0",
-    "@nestjs/common": "7.0.11",
-    "@nestjs/core": "7.0.11",
-    "@nestjs/platform-express": "7.0.11",
-    "@nestjs/schedule": "0.3.1",
+    "@nestjs/common": "7.4.2",
+    "@nestjs/core": "7.4.2",
+    "@nestjs/platform-express": "7.4.2",
+    "@nestjs/schedule": "0.4.0",
     "config": "3.3.1",
     "dashify": "2.0.0",
-    "helmet": "3.22.0",
+    "helmet": "3.23.3",
     "reflect-metadata": "0.1.13",
     "source-map-support": "0.5.19",
-    "string-similarity": "4.0.1"
+    "string-similarity": "4.0.2"
   },
   "devDependencies": {
     "@covidtop/dev": "0.0.0",
     "@types/config": "0.0.36",
     "@types/dashify": "1.0.0",
-    "@types/helmet": "0.0.47",
+    "@types/helmet": "0.0.48",
     "@types/string-similarity": "3.0.0",
-    "nodemon": "2.0.3"
+    "nodemon": "2.0.4"
   }
 }
